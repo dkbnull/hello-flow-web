@@ -8,7 +8,8 @@
     </div>
 
     <div v-loading="loading" class="board-columns">
-      <div v-for="col in columns" :key="col.status" class="board-column">
+      <div v-for="col in columns" :key="col.status" class="board-column"
+           :style="{ '--status-color': TASK_STATUS_MAP[col.status]?.color || '#909399' }">
         <div class="column-header">
           <span class="column-title" :style="{ color: TASK_STATUS_MAP[col.status]?.color }">
             {{ col.statusName }}
@@ -16,26 +17,13 @@
           <el-badge :value="col.tasks?.length || 0" type="info" />
         </div>
         <div class="column-body">
-          <div
+          <TaskCard
             v-for="task in col.tasks"
             :key="task.id"
-            class="task-card"
+            :task="task"
+            :project-code="projectStore.currentProject?.code || 'TASK'"
             @click="openTaskDetail(task)"
-          >
-            <div class="card-header">
-              <el-tag :type="TASK_TYPE_MAP[task.type]?.tagType ?? 'info'" size="default">
-                {{ TASK_TYPE_MAP[task.type]?.label }}
-              </el-tag>
-              <span class="task-id">{{ projectStore.currentProject?.code || 'TASK' }}-{{ task.id }}</span>
-            </div>
-            <div class="card-title">{{ task.title }}</div>
-            <div class="card-footer">
-              <span class="priority" :style="{ color: TASK_PRIORITY_MAP[task.priority]?.color }">
-                {{ TASK_PRIORITY_MAP[task.priority]?.label }}
-              </span>
-              <span v-if="task.assigneeName" class="assignee">{{ task.assigneeName }}</span>
-            </div>
-          </div>
+          />
           <div v-if="!col.tasks || col.tasks.length === 0" class="empty-column">暂无任务</div>
         </div>
       </div>
@@ -48,8 +36,9 @@ import { ref, onMounted, inject, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getProjectBoard, getSprintBoard } from '@/api/board'
 import { getSprintList } from '@/api/sprint'
-import { TASK_STATUS_MAP, TASK_TYPE_MAP, TASK_PRIORITY_MAP } from '@/utils/constants'
+import { TASK_STATUS_MAP } from '@/utils/constants'
 import { useProjectStore } from '@/stores/project'
+import TaskCard from '@/components/task/TaskCard.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -125,8 +114,9 @@ watch(taskRefreshKey, () => {
   min-width: 260px;
   max-width: 300px;
   flex: 1;
-  background: var(--hf-bg-page);
-  border: 1px solid var(--hf-border-light);
+  background: var(--hf-bg-card);
+  border: 1px solid var(--hf-border);
+  border-top: 3px solid var(--status-color);
   border-radius: var(--hf-radius-md);
   display: flex;
   flex-direction: column;
@@ -149,57 +139,6 @@ watch(taskRefreshKey, () => {
   flex: 1;
   padding: 8px;
   overflow-y: auto;
-}
-
-.task-card {
-  background: var(--hf-bg-card);
-  border: 1px solid var(--hf-border);
-  border-radius: var(--hf-radius-sm);
-  padding: 12px;
-  margin-bottom: 8px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.task-card:hover {
-  border-color: var(--hf-primary-border);
-  box-shadow: var(--hf-shadow-sm);
-}
-
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 6px;
-}
-
-.task-id {
-  font-size: 12px;
-  color: var(--hf-text-placeholder);
-  font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
-}
-
-.card-title {
-  font-size: 14px;
-  color: var(--hf-text-primary);
-  line-height: 1.4;
-  margin-bottom: 8px;
-}
-
-.card-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.priority {
-  font-size: 12px;
-  font-weight: 500;
-}
-
-.assignee {
-  font-size: 12px;
-  color: var(--hf-text-secondary);
 }
 
 .empty-column {

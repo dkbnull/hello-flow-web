@@ -1,27 +1,20 @@
 <template>
   <div v-loading="loading" class="board-inline">
     <div class="board-columns">
-      <div v-for="col in columns" :key="col.status" class="board-column">
+      <div v-for="col in columns" :key="col.status" class="board-column"
+           :style="{ '--status-color': TASK_STATUS_MAP[col.status]?.color || '#909399' }">
         <div class="column-header">
           <span :style="{ color: TASK_STATUS_MAP[col.status]?.color }">{{ col.statusName }}</span>
           <el-badge :value="col.tasks?.length || 0" type="info" />
         </div>
         <div class="column-body">
-          <div v-for="task in col.tasks" :key="task.id" class="task-card">
-            <div class="card-header">
-              <el-tag :type="TASK_TYPE_MAP[task.type]?.tagType ?? 'info'" size="small">
-                {{ TASK_TYPE_MAP[task.type]?.label }}
-              </el-tag>
-              <span class="task-id">TASK-{{ task.id }}</span>
-            </div>
-            <div class="card-title">{{ task.title }}</div>
-            <div class="card-footer">
-              <span :style="{ color: TASK_PRIORITY_MAP[task.priority]?.color }">
-                {{ TASK_PRIORITY_MAP[task.priority]?.label }}
-              </span>
-              <span v-if="task.assigneeName" class="assignee">{{ task.assigneeName }}</span>
-            </div>
-          </div>
+          <TaskCard
+            v-for="task in col.tasks"
+            :key="task.id"
+            :task="task"
+            size="small"
+            @click="$emit('task-click', task)"
+          />
           <div v-if="!col.tasks || col.tasks.length === 0" class="empty-column">暂无</div>
         </div>
       </div>
@@ -32,12 +25,15 @@
 <script setup>
 import { ref, onMounted, watch } from 'vue'
 import { getSprintBoard } from '@/api/board'
-import { TASK_STATUS_MAP, TASK_TYPE_MAP, TASK_PRIORITY_MAP } from '@/utils/constants'
+import { TASK_STATUS_MAP } from '@/utils/constants'
+import TaskCard from '@/components/task/TaskCard.vue'
 
 const props = defineProps({
   projectId: { type: [String, Number], required: true },
   sprintId: { type: [String, Number], required: true }
 })
+
+defineEmits(['task-click'])
 
 const loading = ref(false)
 const columns = ref([])
@@ -71,8 +67,9 @@ onMounted(() => loadBoard())
   min-width: 220px;
   max-width: 260px;
   flex: 1;
-  background: var(--hf-bg-page);
-  border: 1px solid var(--hf-border-light);
+  background: var(--hf-bg-card);
+  border: 1px solid var(--hf-border);
+  border-top: 3px solid var(--status-color);
   border-radius: var(--hf-radius-md);
 }
 
@@ -90,44 +87,6 @@ onMounted(() => loadBoard())
   padding: 6px;
   max-height: 400px;
   overflow-y: auto;
-}
-
-.task-card {
-  background: var(--hf-bg-card);
-  border: 1px solid var(--hf-border);
-  border-radius: var(--hf-radius-sm);
-  padding: 10px;
-  margin-bottom: 6px;
-  transition: all 0.2s;
-}
-
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 4px;
-}
-
-.task-id {
-  font-size: 11px;
-  color: var(--hf-text-placeholder);
-  font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
-}
-
-.card-title {
-  font-size: 13px;
-  color: var(--hf-text-primary);
-  margin-bottom: 6px;
-}
-
-.card-footer {
-  display: flex;
-  justify-content: space-between;
-  font-size: 11px;
-}
-
-.assignee {
-  color: var(--hf-text-secondary);
 }
 
 .empty-column {

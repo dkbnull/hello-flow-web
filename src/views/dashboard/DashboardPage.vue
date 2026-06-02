@@ -99,7 +99,7 @@
             class="notification-item"
           >
             <div class="notification-content">{{ notification.content }}</div>
-            <div class="notification-time">{{ formatTime(notification.createdAt) }}</div>
+            <div class="notification-time">{{ formatRelativeTime(notification.createdAt) }}</div>
           </div>
         </el-card>
       </el-col>
@@ -136,9 +136,11 @@ import { getMyTasks } from '@/api/task'
 import { getNotificationList } from '@/api/notification'
 import { getProjectList, getProjectStats } from '@/api/project'
 import { TASK_STATUS_MAP } from '@/utils/constants'
+import { useDateFormat } from '@/composables/useDateFormat'
 import { Clock, EditPen, CircleCheck, WarningFilled } from '@element-plus/icons-vue'
 
 const router = useRouter()
+const { formatRelativeTime } = useDateFormat()
 
 const stats = ref({
   pendingTasks: 0,
@@ -154,53 +156,46 @@ function goToTask(task) {
   router.push({ name: 'TaskDetailPage', params: { taskId: task.id } })
 }
 
-function formatTime(time) {
-  if (!time) return ''
-  const date = new Date(time)
-  const now = new Date()
-  const diff = now - date
-  if (diff < 60000) return '刚刚'
-  if (diff < 3600000) return `${Math.floor(diff / 60000)}分钟前`
-  if (diff < 86400000) return `${Math.floor(diff / 3600000)}小时前`
-  return `${Math.floor(diff / 86400000)}天前`
+function computeStats(allTasks) {
+  stats.value.pendingTasks = allTasks.filter(t => t.status === 1).length
+  stats.value.reviewTasks = allTasks.filter(t => t.status === 3).length
+  stats.value.testTasks = allTasks.filter(t => t.status === 4).length
+  stats.value.myBugs = allTasks.filter(t => t.type === 3 && t.status !== 5 && t.status !== 6 && t.status !== 7).length
 }
 
 onMounted(async () => {
   try {
-    const tasksRes = await getMyTasks({ page: 1, pageSize: 10 })
+    const [tasksRes, allTasksRes, notifRes, projRes] = await Promise.all([
+      getMyTasks({ page: 1, pageSize: 10 }),
+      getMyTasks({ page: 1, pageSize: 100 }),
+      getNotificationList({ page: 1, pageSize: 10 }),
+      getProjectList({ page: 1, pageSize: 50 })
+    ])
+
     myTasks.value = tasksRes.data.records || []
-
-    const allTasksRes = await getMyTasks({ page: 1, pageSize: 100 })
-    const allTasks = allTasksRes.data.records || []
-    stats.value.pendingTasks = allTasks.filter(t => t.status === 1).length
-    stats.value.reviewTasks = allTasks.filter(t => t.status === 3).length
-    stats.value.testTasks = allTasks.filter(t => t.status === 4).length
-    stats.value.myBugs = allTasks.filter(t => t.type === 3 && t.status !== 5 && t.status !== 6 && t.status !== 7).length
-
-    const notifRes = await getNotificationList({ page: 1, pageSize: 10 })
+    computeStats(allTasksRes.data.records || [])
     notifications.value = notifRes.data.records || []
 
-    const projRes = await getProjectList({ page: 1, pageSize: 50 })
     const projects = projRes.data.records || []
-    const progressList = []
-    for (const proj of projects.slice(0, 6)) {
+    const statPromises = projects.slice(0, 6).map(async (proj) => {
       try {
         const statRes = await getProjectStats(proj.id)
         const s = statRes.data
         const total = s.totalTasks || 0
         const done = s.completedTasks || 0
-        progressList.push({
+        return {
           id: proj.id,
           name: proj.name,
           totalTasks: total,
           doneTasks: done,
           progress: total > 0 ? Math.round((done / total) * 100) : 0
-        })
+        }
       } catch {
-        // 错误已在拦截器中处理
+        return null
       }
-    }
-    projectProgress.value = progressList
+    })
+    const results = await Promise.all(statPromises)
+    projectProgress.value = results.filter(Boolean)
   } catch {
     // 错误已在拦截器中处理
   }
