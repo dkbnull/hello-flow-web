@@ -161,7 +161,7 @@ const routes = [
     path: '/:pathMatch(.*)*',
     name: 'NotFound',
     component: () => import('@/views/NotFound.vue'),
-    meta: { title: '页面不存在' }
+    meta: { title: '页面不存在', guest: true }
   }
 ]
 
@@ -170,30 +170,24 @@ const router = createRouter({
   routes
 })
 
-// 路由守卫
 router.beforeEach(async (to, from, next) => {
   const authStore = useAuthStore()
 
-  // 设置页面标题
   document.title = to.meta.title ? `${to.meta.title} - HelloFlow` : 'HelloFlow'
 
-  // 需要认证的页面
   if (to.meta.requiresAuth && !authStore.isLoggedIn) {
     return next({ name: 'Login', query: { redirect: to.fullPath } })
   }
 
-  // 已登录用户访问登录页，跳转工作台
   if (to.meta.guest && authStore.isLoggedIn) {
     return next({ name: 'Dashboard' })
   }
 
-  // 需要管理员权限
   if (to.meta.requiresAdmin && !authStore.isAdmin) {
     return next({ name: 'Dashboard' })
   }
 
-  // 已登录但未获取用户信息
-  if (authStore.isLoggedIn && !authStore.user) {
+  if (authStore.isLoggedIn && !authStore.user && !authStore.userLoading) {
     await authStore.fetchCurrentUser()
   }
 
