@@ -3,12 +3,22 @@ import { ElMessage } from 'element-plus'
 import { useAuthStore } from '@/stores/auth'
 import router from '@/router'
 
+const AUTH_URLS = ['/auth/login', '/auth/logout', '/auth/refresh']
+
 const request = axios.create({
-  baseURL: '/api',
+  baseURL: import.meta.env.VITE_API_BASE_URL || '/api',
   timeout: 15000
 })
 
-// 请求拦截器
+let isRefreshing = false
+let isHandlingExpired = false
+let pendingRequests = []
+
+function isAuthRequest(url) {
+  if (!url) return false
+  return AUTH_URLS.some(authUrl => url.includes(authUrl))
+}
+
 request.interceptors.request.use(
   (config) => {
     const authStore = useAuthStore()
@@ -20,20 +30,18 @@ request.interceptors.request.use(
   (error) => Promise.reject(error)
 )
 
-// 响应拦截器
 request.interceptors.response.use(
   (response) => {
     const res = response.data
     if (res.code !== 0) {
       const message = res.message || '请求失败'
       ElMessage.error(message)
-      // Token 过期或无效
-      if (res.code === 20001 || res.code === 20002 || res.code === 20003) {
-        const authStore = useAuthStore()
-        authStore.logout()
-        router.push('/login')
+      if (
+        (res.code === 20001 || res.code === 20002 || res.code === 20003) &&
+        !isAuthRequest(response.config.url)
+      ) {
+        handleTokenExpired()
       }
-      // 权限不足
       if (res.code === 30001) {
         ElMessage.error('权限不足')
       }
@@ -41,13 +49,12 @@ request.interceptors.response.use(
     }
     return res
   },
-  (error) => {
+  async (error) => {
+    const originalRequest = error.config
     if (error.response) {
       const { status } = error.response
-      if (status === 401) {
-        const authStore = useAuthStore()
-        authStore.logout()
-        router.push('/login')
+      if (status === 401 && !originalRequest._retry && !isAuthRequest(originalRequest.url)) {
+        return handleTokenRefresh(originalRequest)
       } else if (status === 403) {
         ElMessage.error('无权限访问')
       } else if (status === 404) {
@@ -61,5 +68,73 @@ request.interceptors.response.use(
     return Promise.reject(error)
   }
 )
+
+async function handleTokenRefresh(originalRequest) {
+  const authStore = useAuthStore()
+  if (!authStore.refreshToken) {
+    await forceLogout()
+    return Promise.reject(error)
+  }
+
+  if (isRefreshing) {
+    return new Promise((resolve) => {
+      pendingRequests.push(() => {
+        originalRequest.headers.Authorization = `Bearer ${authStore.accessToken}`
+        resolve(request(originalRequest))
+      })
+    })
+  }
+
+  isRefreshing = true
+  originalRequest._retry = true
+
+  try {
+    const success = await authStore.refreshAccessToken()
+    if (success) {
+      originalRequest.headers.Authorization = `Bearer ${authStore.accessToken}`
+      pendingRequests.forEach(cb => cb())
+      pendingRequests = []
+      return request(originalRequest)
+    } else {
+      pendingRequests = []
+      await forceLogout()
+      return Promise.reject(new Error('Token 刷新失败'))
+    }
+  } catch {
+    pendingRequests = []
+    await forceLogout()
+    return Promise.reject(new Error('Token 刷新失败'))
+  } finally {
+    isRefreshing = false
+  }
+}
+
+async function handleTokenExpired() {
+  if (isHandlingExpired) return
+  isHandlingExpired = true
+
+  try {
+    const authStore = useAuthStore()
+    if (!isRefreshing && authStore.refreshToken) {
+      const success = await authStore.refreshAccessToken()
+      if (!success) {
+        await forceLogout()
+      }
+    } else if (!authStore.refreshToken) {
+      await forceLogout()
+    }
+  } finally {
+    isHandlingExpired = false
+  }
+}
+
+async function forceLogout() {
+  const authStore = useAuthStore()
+  await authStore.logout()
+  if (router.currentRoute.value.name !== 'Login') {
+    router.push('/login')
+    ElMessage.error('登录已过期，请重新登录')
+  }
+}
 
 export default request
