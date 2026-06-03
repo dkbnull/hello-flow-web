@@ -1,46 +1,7 @@
 <template>
   <div class="task-list-panel">
-    <div class="filter-bar">
-      <el-row :gutter="12">
-        <el-col :span="4">
-          <el-select v-model="filters.status" placeholder="状态" clearable size="default" @change="loadTasks">
-            <el-option v-for="(info, key) in TASK_STATUS_MAP" :key="key" :label="info.label" :value="Number(key)" />
-          </el-select>
-        </el-col>
-        <el-col :span="3">
-          <el-select v-model="filters.type" placeholder="类型" clearable size="default" @change="loadTasks">
-            <el-option v-for="(info, key) in TASK_TYPE_MAP" :key="key" :label="info.label" :value="Number(key)" />
-          </el-select>
-        </el-col>
-        <el-col :span="3">
-          <el-select v-model="filters.priority" placeholder="优先级" clearable size="default" @change="loadTasks">
-            <el-option v-for="(info, key) in TASK_PRIORITY_MAP" :key="key" :label="info.label" :value="Number(key)" />
-          </el-select>
-        </el-col>
-        <el-col v-if="mode === 'project'" :span="4">
-          <el-select v-model="filters.assigneeId" placeholder="负责人" clearable filterable size="default"
-                     @change="loadTasks">
-            <el-option v-for="m in validMembers" :key="m.userId" :label="m.nickname || m.username" :value="m.userId" />
-          </el-select>
-        </el-col>
-        <el-col v-if="mode === 'project'" :span="4">
-          <el-select v-model="filters.sprintId" placeholder="选择迭代" clearable size="default" @change="loadTasks">
-            <el-option v-for="s in sprints" :key="s.id" :label="s.name" :value="s.id" />
-          </el-select>
-        </el-col>
-        <el-col :span="keywordSpan">
-          <el-input v-model="filters.keyword" placeholder="搜索关键词" clearable size="default" class="keyword-input"
-                    @keyup.enter="loadTasks"
-                    @clear="loadTasks">
-            <template #prefix>
-              <el-icon>
-                <Search />
-              </el-icon>
-            </template>
-          </el-input>
-        </el-col>
-      </el-row>
-      <div class="quick-filters">
+    <SearchBar :options="searchOptions" v-model="filters" @search="loadTasks" @reset="handleReset">
+      <template #extra>
         <el-button :type="quickFilter === 'mine' ? 'primary' : ''" size="default" @click="toggleQuickFilter('mine')">
           分配给我
         </el-button>
@@ -68,64 +29,46 @@
           </el-icon>
           保存过滤器
         </el-button>
-      </div>
-    </div>
+      </template>
+    </SearchBar>
 
-    <el-table :data="tasks" stripe @row-click="openTaskDetail">
-      <el-table-column prop="id" label="编码" width="110">
-        <template #default="{ row }">
-          {{ row.projectCode || projectCode || 'TASK' }}-{{ row.id }}
-        </template>
-      </el-table-column>
-      <el-table-column v-if="mode === 'my'" prop="projectName" label="项目" width="120" show-overflow-tooltip />
-      <el-table-column prop="title" label="标题" min-width="200" show-overflow-tooltip />
-      <el-table-column prop="type" label="类型" width="80">
-        <template #default="{ row }">
-          <el-tag :type="TASK_TYPE_MAP[row.type]?.tagType ?? 'info'" size="default">
-            {{ TASK_TYPE_MAP[row.type]?.label || '未知' }}
-          </el-tag>
-        </template>
-      </el-table-column>
-      <el-table-column prop="priority" label="优先级" width="80">
-        <template #default="{ row }">
-          <span :style="{ color: TASK_PRIORITY_MAP[row.priority]?.color }">
-            {{ TASK_PRIORITY_MAP[row.priority]?.label || '未知' }}
-          </span>
-        </template>
-      </el-table-column>
-      <el-table-column prop="status" label="状态" width="90">
-        <template #default="{ row }">
-          <el-tag :type="TASK_STATUS_MAP[row.status]?.tagType ?? 'info'" size="default">
-            {{ TASK_STATUS_MAP[row.status]?.label || '未知' }}
-          </el-tag>
-        </template>
-      </el-table-column>
-      <el-table-column prop="developerName" label="开发工程师" min-width="110">
-        <template #default="{ row }">
-          {{ row.developerName || row.assigneeName || '-' }}
-        </template>
-      </el-table-column>
-      <el-table-column prop="testerName" label="测试工程师" min-width="110">
-        <template #default="{ row }">
-          {{ row.testerName || '-' }}
-        </template>
-      </el-table-column>
-      <el-table-column prop="dueDate" label="到期日" min-width="110">
-        <template #default="{ row }">
-          <span :class="{ 'overdue': isOverdue(row) }">{{ row.dueDate || '-' }}</span>
-        </template>
-      </el-table-column>
-    </el-table>
-
-    <el-pagination
-      v-if="total > pageSize"
-      v-model:current-page="currentPage"
-      :page-size="pageSize"
+    <HfTable
+      :columns="columns"
+      :data="tasks"
       :total="total"
-      layout="total, prev, pager, next"
-      class="pagination"
-      @current-change="loadTasks"
-    />
+      v-model:page="currentPage"
+      :page-size="pageSize"
+      @page-change="loadTasks"
+      @row-click="openTaskDetail"
+    >
+      <template #code="{ row }">
+        {{ row.projectCode || projectCode || 'TASK' }}-{{ row.id }}
+      </template>
+      <template #type="{ row }">
+        <el-tag :type="TASK_TYPE_MAP[row.type]?.tagType ?? 'info'" size="default">
+          {{ TASK_TYPE_MAP[row.type]?.label || '未知' }}
+        </el-tag>
+      </template>
+      <template #priority="{ row }">
+        <span :style="{ color: TASK_PRIORITY_MAP[row.priority]?.color }">
+          {{ TASK_PRIORITY_MAP[row.priority]?.label || '未知' }}
+        </span>
+      </template>
+      <template #status="{ row }">
+        <el-tag :type="TASK_STATUS_MAP[row.status]?.tagType ?? 'info'" size="default">
+          {{ TASK_STATUS_MAP[row.status]?.label || '未知' }}
+        </el-tag>
+      </template>
+      <template #developerName="{ row }">
+        {{ row.developerName || row.assigneeName || '-' }}
+      </template>
+      <template #testerName="{ row }">
+        {{ row.testerName || '-' }}
+      </template>
+      <template #dueDate="{ row }">
+        <span :class="{ 'overdue': isOverdue(row) }">{{ row.dueDate || '-' }}</span>
+      </template>
+    </HfTable>
 
     <SaveFilterDialog
       v-model="showSaveDialog"
@@ -144,7 +87,9 @@ import { TASK_PRIORITY_MAP, TASK_STATUS_MAP, TASK_TYPE_MAP } from '@/utils/const
 import { useAuthStore } from '@/stores/auth'
 import { useProjectStore } from '@/stores/project'
 import { useFilterStore } from '@/stores/filter'
-import { Plus, Search } from '@element-plus/icons-vue'
+import { Plus } from '@element-plus/icons-vue'
+import SearchBar from '@/components/common/SearchBar.vue'
+import HfTable from '@/components/common/HfTable.vue'
 import SaveFilterDialog from '@/components/task/SaveFilterDialog.vue'
 
 const props = defineProps({
@@ -171,10 +116,59 @@ const sprints = ref([])
 
 const projectCode = computed(() => projectStore.currentProject?.code || '')
 
-const keywordSpan = computed(() => props.mode === 'project' ? 6 : 14)
-
 const validMembers = computed(() => {
   return members.value.filter(m => m.userId && (m.nickname || m.username))
+})
+
+// 搜索条件配置
+const searchOptions = computed(() => {
+  const options = [
+    {
+      type: 'select', label: '状态', prop: 'status', placeholder: '状态',
+      options: Object.entries(TASK_STATUS_MAP).map(([key, info]) => ({ label: info.label, value: Number(key) }))
+    },
+    {
+      type: 'select', label: '类型', prop: 'type', placeholder: '类型',
+      options: Object.entries(TASK_TYPE_MAP).map(([key, info]) => ({ label: info.label, value: Number(key) }))
+    },
+    {
+      type: 'select', label: '优先级', prop: 'priority', placeholder: '优先级',
+      options: Object.entries(TASK_PRIORITY_MAP).map(([key, info]) => ({ label: info.label, value: Number(key) }))
+    }
+  ]
+  if (props.mode === 'project') {
+    options.push({
+      type: 'select', label: '负责人', prop: 'assigneeId', placeholder: '负责人',
+      filterable: true,
+      options: validMembers.value.map(m => ({ label: m.nickname || m.username, value: m.userId }))
+    })
+    options.push({
+      type: 'select', label: '迭代', prop: 'sprintId', placeholder: '选择迭代',
+      options: sprints.value.map(s => ({ label: s.name, value: s.id }))
+    })
+  }
+  options.push({ type: 'input', label: '', prop: 'keyword', placeholder: '搜索关键词' })
+  return options
+})
+
+// 表格列配置
+const columns = computed(() => {
+  const cols = [
+    { prop: 'id', label: '编码', width: 110, slot: 'code' }
+  ]
+  if (props.mode === 'my') {
+    cols.push({ prop: 'projectName', label: '项目', width: 120, showOverflowTooltip: true })
+  }
+  cols.push(
+    { prop: 'title', label: '标题', minWidth: 200, showOverflowTooltip: true },
+    { prop: 'type', label: '类型', width: 80, slot: 'type' },
+    { prop: 'priority', label: '优先级', width: 80, slot: 'priority' },
+    { prop: 'status', label: '状态', width: 90, slot: 'status' },
+    { prop: 'developerName', label: '开发工程师', minWidth: 110, slot: 'developerName' },
+    { prop: 'testerName', label: '测试工程师', minWidth: 110, slot: 'testerName' },
+    { prop: 'dueDate', label: '到期日', minWidth: 110, slot: 'dueDate' }
+  )
+  return cols
 })
 
 const savedFilters = computed(() => {
@@ -203,6 +197,11 @@ function toggleQuickFilter(type) {
   quickFilter.value = quickFilter.value === type ? '' : type
   activeFilterId.value = null
   loadTasks()
+}
+
+function handleReset() {
+  quickFilter.value = ''
+  activeFilterId.value = null
 }
 
 async function handleSaveFilter(filterName) {
@@ -395,39 +394,12 @@ watch(() => route.query.keyword, (newKeyword) => {
   padding: 0;
 }
 
-.filter-bar {
-  margin-bottom: 16px;
-}
-
-.filter-bar .el-select,
-.filter-bar .el-input {
-  width: 100%;
-}
-
-.keyword-input {
-  max-width: 240px;
-}
-
-.quick-filters {
-  margin-top: 8px;
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 4px;
-}
-
 .saved-filter-tag {
   cursor: pointer;
 }
 
 .overdue {
   color: var(--hf-danger);
-}
-
-.pagination {
-  margin-top: 16px;
-  display: flex;
-  justify-content: center;
 }
 
 .task-list-panel :deep(.el-table__row) {

@@ -20,6 +20,7 @@
             v-model="searchValues[item.prop]"
             :placeholder="item.placeholder || `请选择${item.label}`"
             clearable
+            :filterable="item.filterable"
             class="search-select"
             @change="handleSearch"
           >
@@ -63,6 +64,10 @@
         <el-button @click="handleReset">重置</el-button>
       </el-form-item>
     </el-form>
+    <!-- 额外内容插槽：快捷筛选、保存过滤器等 -->
+    <div v-if="$slots.extra" class="search-extra">
+      <slot name="extra" />
+    </div>
   </div>
 </template>
 
@@ -150,5 +155,13 @@ function handleReset() {
 .search-select {
   width: 200px;
   max-width: 200px;
+}
+
+.search-extra {
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
 }
 </style>

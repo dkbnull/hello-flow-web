@@ -16,21 +16,13 @@
       </template>
     </PageHeader>
 
-    <el-table :data="members" stripe>
-      <el-table-column prop="nickname" label="昵称" />
-      <el-table-column prop="username" label="用户名" />
-      <el-table-column prop="positionName" label="职位" />
-      <el-table-column prop="joinedAt" label="加入时间" />
-      <el-table-column v-if="canManageProject && !isArchived" label="操作" width="100">
-        <template #default="{ row }">
-          <el-popconfirm title="确定移除该成员？" @confirm="handleRemove(row.userId)">
-            <template #reference>
-              <el-button type="danger" link size="small">移除</el-button>
-            </template>
-          </el-popconfirm>
-        </template>
-      </el-table-column>
-    </el-table>
+    <HfTable
+      :columns="columns"
+      :data="members"
+      :total="0"
+      :show-size-changer="false"
+      @action="handleAction"
+    />
 
     <AddMemberDialog
       v-model="showAddDialog"
@@ -43,7 +35,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { getProjectMembers, removeProjectMember } from '@/api/project'
 import { getUserList } from '@/api/user'
@@ -52,11 +44,29 @@ import { useProjectArchive } from '@/composables/useProjectArchive'
 import { ElMessage } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
 import PageHeader from '@/components/common/PageHeader.vue'
+import HfTable from '@/components/common/HfTable.vue'
 import AddMemberDialog from '@/components/project/AddMemberDialog.vue'
 
 const route = useRoute()
 const { canManageProject } = usePermission()
 const { isArchived } = useProjectArchive()
+
+const columns = computed(() => {
+  const cols = [
+    { prop: 'nickname', label: '昵称' },
+    { prop: 'username', label: '用户名' },
+    { prop: 'positionName', label: '职位' },
+    { prop: 'joinedAt', label: '加入时间' }
+  ]
+  if (canManageProject.value && !isArchived.value) {
+    cols.push({
+      prop: 'operator', label: '操作', width: 100, view: false, edit: false, delete: false, actions: [
+        { label: '移除', action: 'remove', type: 'danger' }
+      ]
+    })
+  }
+  return cols
+})
 
 const members = ref([])
 const showAddDialog = ref(false)
@@ -87,6 +97,12 @@ async function handleRemove(userId) {
     await loadMembers()
   } catch {
     // 错误已在拦截器中处理
+  }
+}
+
+function handleAction({ action, row }) {
+  if (action === 'remove') {
+    handleRemove(row.userId)
   }
 }
 
