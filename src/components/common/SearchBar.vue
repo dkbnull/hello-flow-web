@@ -8,7 +8,7 @@
             v-model="searchValues[item.prop]"
             :placeholder="item.placeholder || `请输入${item.label}`"
             clearable
-            style="width: 200px"
+            class="search-input"
             @keyup.enter="handleSearch"
             @clear="handleSearch"
           />
@@ -20,7 +20,7 @@
             v-model="searchValues[item.prop]"
             :placeholder="item.placeholder || `请选择${item.label}`"
             clearable
-            style="width: 200px"
+            class="search-select"
             @change="handleSearch"
           >
             <el-option
@@ -140,5 +140,15 @@ function handleReset() {
 .search-form :deep(.el-form-item) {
   margin-bottom: 8px;
   margin-right: 16px;
+}
+
+.search-input {
+  width: 200px;
+  max-width: 200px;
+}
+
+.search-select {
+  width: 200px;
+  max-width: 200px;
 }
 </style>

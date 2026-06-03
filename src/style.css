@@ -116,11 +116,17 @@ html, body, #app {
 
 .el-table {
   --el-table-border-color: var(--hf-border);
-  --el-table-header-bg-color: #F8FAFC;
+  --el-table-header-bg-color: #EEF2F7;
   --el-table-row-hover-bg-color: var(--hf-primary-bg);
   border: 1px solid var(--hf-border);
   border-radius: var(--hf-radius-md);
   overflow: hidden;
+}
+
+.el-table th.el-table__cell {
+  background-color: #EEF2F7 !important;
+  color: var(--hf-text-primary) !important;
+  font-weight: 600 !important;
 }
 
 .el-dialog {
@@ -152,4 +158,51 @@ html, body, #app {
   margin-top: 16px;
   display: flex;
   justify-content: center;
+}
+
+/* 确认弹窗自定义样式 */
+.el-popconfirm {
+  max-width: 320px;
+}
+
+.el-popconfirm__main {
+  padding: 4px 0;
+}
+
+.el-popconfirm__icon {
+  font-size: 18px !important;
+  color: var(--hf-warning) !important;
+  margin-right: 8px !important;
+}
+
+.el-popconfirm__action {
+  margin-top: 8px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.el-message-box {
+  border-radius: var(--hf-radius-lg) !important;
+  padding: 24px !important;
+  max-width: 420px;
+}
+
+.el-message-box__header {
+  padding-bottom: 12px !important;
+}
+
+.el-message-box__title {
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  color: var(--hf-text-primary) !important;
+}
+
+.el-message-box__content {
+  color: var(--hf-text-regular) !important;
+  font-size: 14px !important;
+}
+
+.el-message-box__btns {
+  padding-top: 16px !important;
 }

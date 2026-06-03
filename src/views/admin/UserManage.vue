@@ -42,7 +42,7 @@ import HfTable from '@/components/common/HfTable.vue'
 import UserFormDialog from '@/components/user/UserFormDialog.vue'
 
 const searchOptions = ref([
-  { type: 'input', label: '搜索', prop: 'keyword', placeholder: '搜索用户名/昵称/邮箱' }
+  { type: 'input', label: '', prop: 'keyword', placeholder: '搜索用户名/昵称/邮箱' }
 ])
 const searchValues = ref({})
 
@@ -53,12 +53,20 @@ const columns = ref([
   { prop: 'email', label: '邮箱', minWidth: 180 },
   { prop: 'positionName', label: '职位', width: 100 },
   { prop: 'roles', label: '角色', minWidth: 100, slot: 'roles' },
-  { prop: 'status', label: '状态', width: 80, type: 'status', statusMap: { 1: { label: '启用', tagType: 'success' }, 0: { label: '禁用', tagType: 'danger' } } },
+  {
+    prop: 'status',
+    label: '状态',
+    width: 80,
+    type: 'status',
+    statusMap: { 1: { label: '启用', tagType: 'success' }, 0: { label: '禁用', tagType: 'danger' } }
+  },
   { prop: 'createdAt', label: '创建时间', minWidth: 170 },
-  { prop: 'operator', label: '操作', width: 200, view: false, edit: false, delete: false, actions: [
-    { label: '编辑', action: 'edit', type: 'primary' },
-    { label: '禁用', action: 'toggleStatus', type: 'danger' }
-  ] }
+  {
+    prop: 'operator', label: '操作', width: 200, view: false, edit: false, delete: false, actions: [
+      { label: '编辑', action: 'edit', type: 'primary' },
+      { label: '禁用', action: 'toggleStatus', type: 'danger' }
+    ]
+  }
 ])
 
 const users = ref([])

@@ -29,7 +29,8 @@
           </el-select>
         </el-col>
         <el-col :span="keywordSpan">
-          <el-input v-model="filters.keyword" placeholder="搜索关键词" clearable size="default" @keyup.enter="loadTasks"
+          <el-input v-model="filters.keyword" placeholder="搜索关键词" clearable size="default" class="keyword-input"
+                    @keyup.enter="loadTasks"
                     @clear="loadTasks">
             <template #prefix>
               <el-icon>
@@ -401,6 +402,10 @@ watch(() => route.query.keyword, (newKeyword) => {
 .filter-bar .el-select,
 .filter-bar .el-input {
   width: 100%;
+}
+
+.keyword-input {
+  max-width: 240px;
 }
 
 .quick-filters {

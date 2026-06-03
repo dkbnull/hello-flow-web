@@ -1,7 +1,8 @@
 <template>
   <div class="board-view">
     <div class="board-header">
-      <el-select v-model="sprintId" placeholder="选择迭代" clearable size="default" @change="loadBoard">
+      <el-select v-model="sprintId" placeholder="选择迭代" clearable size="default" class="sprint-select"
+                 @change="loadBoard">
         <el-option label="全部" :value="null" />
         <el-option v-for="s in sprints" :key="s.id" :label="s.name" :value="s.id" />
       </el-select>
@@ -100,6 +101,11 @@ watch(taskRefreshKey, () => {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 16px;
+}
+
+.sprint-select {
+  width: 200px;
+  max-width: 200px;
 }
 
 .board-columns {

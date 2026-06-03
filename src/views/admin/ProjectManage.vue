@@ -48,7 +48,7 @@ import HfTable from '@/components/common/HfTable.vue'
 import ProjectFormDialog from '@/components/project/ProjectFormDialog.vue'
 
 const searchOptions = ref([
-  { type: 'input', label: '搜索', prop: 'keyword', placeholder: '搜索项目名称' }
+  { type: 'input', label: '', prop: 'keyword', placeholder: '搜索项目名称' }
 ])
 const searchValues = ref({})
 
