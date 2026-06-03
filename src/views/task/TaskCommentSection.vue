@@ -1,20 +1,12 @@
 <template>
-  <el-card class="section-card" shadow="never">
-    <template #header>
-      <div class="card-header">
-        <el-icon>
-          <ChatDotSquare />
-        </el-icon>
-        <span>评论</span>
-      </div>
-    </template>
+  <SectionCard title="评论" :icon="ChatDotSquare">
     <div class="comment-input">
       <el-input v-model="content" type="textarea" :rows="2" placeholder="输入评论..." />
       <div class="comment-submit">
         <el-button type="primary" size="default" :loading="submitting" @click="handleSubmit">发表评论</el-button>
       </div>
     </div>
-    <div v-if="comments.length === 0" class="empty-text">暂无评论</div>
+    <div v-if="comments.length === 0" class="hf-empty-text">暂无评论</div>
     <div v-for="comment in comments" :key="comment.id" class="comment-item">
       <div class="comment-header">
         <el-avatar :size="28" :src="comment.avatar">{{ comment.nickname?.charAt(0) }}</el-avatar>
@@ -23,13 +15,14 @@
       </div>
       <div class="comment-content" v-html="comment.content"></div>
     </div>
-  </el-card>
+  </SectionCard>
 </template>
 
 <script setup>
 import { ref } from 'vue'
 import { ChatDotSquare } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
+import SectionCard from '@/components/common/SectionCard.vue'
 
 const props = defineProps({
   comments: { type: Array, default: () => [] },
@@ -51,36 +44,6 @@ async function handleSubmit() {
 </script>
 
 <style scoped>
-.section-card {
-  margin-bottom: 16px;
-  border-radius: var(--hf-radius-md);
-  border: 1px solid var(--hf-border);
-}
-
-.section-card :deep(.el-card__header) {
-  padding: 12px 20px;
-  background: var(--hf-bg-page);
-  border-bottom: 1px solid var(--hf-border-light);
-}
-
-.section-card :deep(.el-card__body) {
-  padding: 16px 20px;
-}
-
-.card-header {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--hf-text-primary);
-}
-
-.card-header .el-icon {
-  font-size: 16px;
-  color: var(--hf-primary);
-}
-
 .comment-input {
   margin-bottom: 16px;
 }
@@ -89,13 +52,6 @@ async function handleSubmit() {
   display: flex;
   justify-content: flex-end;
   margin-top: 8px;
-}
-
-.empty-text {
-  text-align: center;
-  color: var(--hf-text-placeholder);
-  padding: 24px 0;
-  font-size: 14px;
 }
 
 .comment-item {

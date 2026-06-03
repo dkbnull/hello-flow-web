@@ -1,18 +1,17 @@
 <template>
   <div class="notification-list">
-    <div class="page-header">
-      <h2 class="page-title">通知中心</h2>
-      <div class="header-actions">
+    <PageHeader title="通知中心">
+      <template #actions>
         <el-radio-group v-model="readFilter" size="default" @change="handleFilterChange">
           <el-radio-button :value="null">全部</el-radio-button>
           <el-radio-button :value="0">未读</el-radio-button>
           <el-radio-button :value="1">已读</el-radio-button>
         </el-radio-group>
         <el-button size="default" @click="handleReadAll">全部已读</el-button>
-      </div>
-    </div>
+      </template>
+    </PageHeader>
 
-    <div v-if="notifications.length === 0" class="empty-text">暂无通知</div>
+    <div v-if="notifications.length === 0" class="hf-empty-text">暂无通知</div>
     <div
       v-for="notification in notifications"
       :key="notification.id"
@@ -38,18 +37,19 @@
       :page-size="pageSize"
       :total="total"
       layout="prev, pager, next"
-      class="pagination"
+      class="hf-pagination"
       @current-change="loadNotifications"
     />
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { getNotificationList, markAsRead, markAllAsRead } from '@/api/notification'
+import { onMounted, ref } from 'vue'
+import { getNotificationList, markAllAsRead, markAsRead } from '@/api/notification'
 import { useNotificationStore } from '@/stores/notification'
 import { NOTIFICATION_TYPE_MAP } from '@/utils/constants'
 import { ElMessage } from 'element-plus'
+import PageHeader from '@/components/common/PageHeader.vue'
 
 const notificationStore = useNotificationStore()
 
@@ -118,26 +118,6 @@ onMounted(() => {
   padding: var(--hf-page-padding);
 }
 
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: var(--hf-page-title-margin);
-}
-
-.header-actions {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.page-title {
-  font-size: var(--hf-page-title-size);
-  font-weight: 700;
-  color: var(--hf-text-primary);
-  letter-spacing: -0.02em;
-}
-
 .notification-item {
   display: flex;
   gap: 12px;
@@ -179,17 +159,5 @@ onMounted(() => {
   font-size: 12px;
   color: var(--hf-text-placeholder);
   margin-top: 4px;
-}
-
-.empty-text {
-  text-align: center;
-  color: var(--hf-text-placeholder);
-  padding: 40px 0;
-}
-
-.pagination {
-  margin-top: 16px;
-  display: flex;
-  justify-content: center;
 }
 </style>

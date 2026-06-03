@@ -41,6 +41,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { getProjectDetail } from '@/api/project'
 import { useProjectStore } from '@/stores/project'
 import { PROJECT_STATUS_MAP } from '@/utils/constants'
+import { Plus } from '@element-plus/icons-vue'
 import CreateTaskDialog from '@/components/task/CreateTaskDialog.vue'
 
 const route = useRoute()

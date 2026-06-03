@@ -12,7 +12,7 @@ export const TASK_STATUS = {
 export const TASK_STATUS_MAP = {
   [TASK_STATUS.TODO]: { label: '未开始', color: '#909399', tagType: '' },
   [TASK_STATUS.IN_PROGRESS]: { label: '进行中', color: '#409EFF', tagType: '' },
-  [TASK_STATUS.IN_REVIEW]: { label: '待评审', color: '#E6A23C', tagType: 'warning' },
+  [TASK_STATUS.IN_REVIEW]: { label: '待审查', color: '#E6A23C', tagType: 'warning' },
   [TASK_STATUS.IN_TEST]: { label: '待测试', color: '#F56C6C', tagType: 'danger' },
   [TASK_STATUS.DONE]: { label: '已完成', color: '#67C23A', tagType: 'success' },
   [TASK_STATUS.CLOSED]: { label: '已关闭', color: '#909399', tagType: 'info' },

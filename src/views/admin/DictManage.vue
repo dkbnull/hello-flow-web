@@ -7,33 +7,19 @@
           <template #header>
             <div class="card-header">
               <span>字典类型</span>
-              <el-button type="primary" size="small" @click="openTypeDialog()">新增</el-button>
+              <el-button type="primary" size="default" @click="openTypeDialog()">新增</el-button>
             </div>
           </template>
-          <el-table :data="dictTypes" stripe highlight-current-row @current-change="handleTypeSelect">
-            <el-table-column prop="name" label="名称" min-width="100" />
-            <el-table-column prop="code" label="编码" min-width="100" />
-            <el-table-column prop="status" label="状态" width="80">
-              <template #default="{ row }">
-                <el-tag :type="row.status === 1 ? 'success' : 'danger'" size="small">
-                  {{ row.status === 1 ? '启用' : '禁用' }}
-                </el-tag>
-              </template>
-            </el-table-column>
-            <el-table-column label="操作" width="80">
-              <template #default="{ row }">
-                <el-button link type="primary" size="small" @click.stop="openTypeDialog(row)">编辑</el-button>
-              </template>
-            </el-table-column>
-          </el-table>
-          <el-pagination
-            v-if="typeTotal > typePageSize"
-            v-model:current-page="typePage"
-            :page-size="typePageSize"
+          <HfTable
+            :columns="typeColumns"
+            :data="dictTypes"
             :total="typeTotal"
-            layout="prev, pager, next"
-            class="pagination"
-            @current-change="loadDictTypes"
+            v-model:page="typePage"
+            :page-size="typePageSize"
+            :show-size-changer="false"
+            @action="handleTypeAction"
+            @page-change="loadDictTypes"
+            @row-click="handleTypeRowClick"
           />
         </el-card>
       </el-col>
@@ -44,82 +30,44 @@
           <template #header>
             <div class="card-header">
               <span>字典数据 {{ selectedType ? `- ${selectedType.name}` : '' }}</span>
-              <el-button type="primary" size="small" :disabled="!selectedType" @click="openDataDialog()">新增
+              <el-button type="primary" size="default" :disabled="!selectedType" @click="openDataDialog()">新增
               </el-button>
             </div>
           </template>
-          <div v-if="!selectedType" class="empty-text">请选择左侧字典类型</div>
-          <el-table v-else :data="dictData" stripe>
-            <el-table-column prop="label" label="标签" min-width="100" />
-            <el-table-column prop="value" label="值" min-width="100" />
-            <el-table-column prop="sort" label="排序" width="80" />
-            <el-table-column prop="status" label="状态" width="80">
-              <template #default="{ row }">
-                <el-tag :type="row.status === 1 ? 'success' : 'danger'" size="small">
-                  {{ row.status === 1 ? '启用' : '禁用' }}
-                </el-tag>
-              </template>
-            </el-table-column>
-            <el-table-column label="操作" width="80">
-              <template #default="{ row }">
-                <el-button link type="primary" size="small" @click="openDataDialog(row)">编辑</el-button>
-              </template>
-            </el-table-column>
-          </el-table>
+          <div v-if="!selectedType" class="hf-empty-text">请选择左侧字典类型</div>
+          <HfTable
+            v-else
+            :columns="dataColumns"
+            :data="dictData"
+            :total="0"
+            :show-size-changer="false"
+            @action="handleDataAction"
+          />
         </el-card>
       </el-col>
     </el-row>
 
-    <!-- 字典类型对话框 -->
-    <el-dialog v-model="showTypeDialog" :title="isTypeEdit ? '编辑字典类型' : '新增字典类型'" width="480px">
-      <el-form ref="typeFormRef" :model="typeForm" :rules="typeRules" label-width="70px">
-        <el-form-item label="名称" prop="name">
-          <el-input v-model="typeForm.name" />
-        </el-form-item>
-        <el-form-item label="编码" prop="code">
-          <el-input v-model="typeForm.code" :disabled="isTypeEdit" />
-        </el-form-item>
-        <el-form-item label="备注" prop="remark">
-          <el-input v-model="typeForm.remark" type="textarea" :rows="2" />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="showTypeDialog = false">取消</el-button>
-        <el-button type="primary" :loading="saving" @click="handleSaveType">确定</el-button>
-      </template>
-    </el-dialog>
+    <DictTypeDialog
+      v-model="showTypeDialog"
+      :edit-data="typeEditData"
+      @saved="handleTypeSaved"
+    />
 
-    <!-- 字典数据对话框 -->
-    <el-dialog v-model="showDataDialog" :title="isDataEdit ? '编辑字典数据' : '新增字典数据'" width="480px">
-      <el-form ref="dataFormRef" :model="dataForm" :rules="dataRules" label-width="70px">
-        <el-form-item label="标签" prop="label">
-          <el-input v-model="dataForm.label" />
-        </el-form-item>
-        <el-form-item label="值" prop="value">
-          <el-input v-model="dataForm.value" />
-        </el-form-item>
-        <el-form-item label="排序" prop="sort">
-          <el-input-number v-model="dataForm.sort" :min="0" />
-        </el-form-item>
-        <el-form-item label="备注" prop="remark">
-          <el-input v-model="dataForm.remark" type="textarea" :rows="2" />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="showDataDialog = false">取消</el-button>
-        <el-button type="primary" :loading="saving" @click="handleSaveData">确定</el-button>
-      </template>
-    </el-dialog>
+    <DictDataDialog
+      v-model="showDataDialog"
+      :edit-data="dataEditData"
+      :type-id="selectedType?.id"
+      @saved="handleDataSaved"
+    />
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import {
-  getDictTypeList, createDictType, updateDictType,
-  getDictDataList, createDictData, updateDictData
-} from '@/api/dict'
-import { ElMessage } from 'element-plus'
+import { onMounted, ref } from 'vue'
+import { getDictDataList, getDictTypeList } from '@/api/dict'
+import HfTable from '@/components/common/HfTable.vue'
+import DictTypeDialog from '@/components/dict/DictTypeDialog.vue'
+import DictDataDialog from '@/components/dict/DictDataDialog.vue'
 
 const dictTypes = ref([])
 const dictData = ref([])
@@ -129,26 +77,37 @@ const typePage = ref(1)
 const typePageSize = 20
 const typeTotal = ref(0)
 
+const typeColumns = ref([
+  { prop: 'name', label: '名称', minWidth: 100 },
+  { prop: 'code', label: '编码', minWidth: 100 },
+  {
+    prop: 'status',
+    label: '状态',
+    width: 80,
+    type: 'status',
+    statusMap: { 1: { label: '启用', tagType: 'success' }, 0: { label: '禁用', tagType: 'danger' } }
+  },
+  { prop: 'operator', label: '操作', width: 80, view: false, edit: true, delete: false }
+])
+
+const dataColumns = ref([
+  { prop: 'label', label: '标签', minWidth: 100 },
+  { prop: 'value', label: '值', minWidth: 100 },
+  { prop: 'sort', label: '排序', width: 80 },
+  {
+    prop: 'status',
+    label: '状态',
+    width: 80,
+    type: 'status',
+    statusMap: { 1: { label: '启用', tagType: 'success' }, 0: { label: '禁用', tagType: 'danger' } }
+  },
+  { prop: 'operator', label: '操作', width: 80, view: false, edit: true, delete: false }
+])
+
 const showTypeDialog = ref(false)
 const showDataDialog = ref(false)
-const isTypeEdit = ref(false)
-const isDataEdit = ref(false)
-const saving = ref(false)
-const typeFormRef = ref(null)
-const dataFormRef = ref(null)
-
-const typeForm = ref({ id: null, name: '', code: '', remark: '' })
-const dataForm = ref({ id: null, typeId: null, label: '', value: '', sort: 0, remark: '' })
-
-const typeRules = {
-  name: [{ required: true, message: '请输入名称', trigger: 'blur' }],
-  code: [{ required: true, message: '请输入编码', trigger: 'blur' }]
-}
-
-const dataRules = {
-  label: [{ required: true, message: '请输入标签', trigger: 'blur' }],
-  value: [{ required: true, message: '请输入值', trigger: 'blur' }]
-}
+const typeEditData = ref(null)
+const dataEditData = ref(null)
 
 async function loadDictTypes() {
   try {
@@ -160,10 +119,20 @@ async function loadDictTypes() {
   }
 }
 
-async function handleTypeSelect(row) {
+function handleTypeAction({ action, row }) {
+  if (action === 'edit') {
+    openTypeDialog(row)
+  }
+}
+
+function handleTypeRowClick(row) {
   selectedType.value = row
-  if (row) {
-    await loadDictData(row.id)
+  loadDictData(row.id)
+}
+
+function handleDataAction({ action, row }) {
+  if (action === 'edit') {
+    openDataDialog(row)
   }
 }
 
@@ -177,68 +146,22 @@ async function loadDictData(typeId) {
 }
 
 function openTypeDialog(row) {
-  isTypeEdit.value = !!row
-  typeForm.value = row
-    ? { id: row.id, name: row.name, code: row.code, remark: row.remark || '' }
-    : { id: null, name: '', code: '', remark: '' }
+  typeEditData.value = row || null
   showTypeDialog.value = true
 }
 
 function openDataDialog(row) {
-  isDataEdit.value = !!row
-  dataForm.value = row
-    ? {
-      id: row.id,
-      typeId: selectedType.value.id,
-      label: row.label,
-      value: row.value,
-      sort: row.sort || 0,
-      remark: row.remark || ''
-    }
-    : { id: null, typeId: selectedType.value.id, label: '', value: '', sort: 0, remark: '' }
+  dataEditData.value = row || null
   showDataDialog.value = true
 }
 
-async function handleSaveType() {
-  const valid = await typeFormRef.value.validate().catch(() => false)
-  if (!valid) return
-
-  saving.value = true
-  try {
-    if (isTypeEdit.value) {
-      await updateDictType(typeForm.value.id, typeForm.value)
-    } else {
-      await createDictType(typeForm.value)
-    }
-    ElMessage.success('保存成功')
-    showTypeDialog.value = false
-    await loadDictTypes()
-  } catch {
-    // 错误已在拦截器中处理
-  } finally {
-    saving.value = false
-  }
+function handleTypeSaved() {
+  loadDictTypes()
 }
 
-async function handleSaveData() {
-  const valid = await dataFormRef.value.validate().catch(() => false)
-  if (!valid) return
-
-  saving.value = true
-  try {
-    if (isDataEdit.value) {
-      await updateDictData(dataForm.value.id, dataForm.value)
-    } else {
-      // typeId 在 Body 中
-      await createDictData(dataForm.value)
-    }
-    ElMessage.success('保存成功')
-    showDataDialog.value = false
-    await loadDictData(selectedType.value.id)
-  } catch {
-    // 错误已在拦截器中处理
-  } finally {
-    saving.value = false
+function handleDataSaved() {
+  if (selectedType.value) {
+    loadDictData(selectedType.value.id)
   }
 }
 
@@ -256,17 +179,5 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-}
-
-.empty-text {
-  text-align: center;
-  color: #999;
-  padding: 40px 0;
-}
-
-.pagination {
-  margin-top: 12px;
-  display: flex;
-  justify-content: center;
 }
 </style>

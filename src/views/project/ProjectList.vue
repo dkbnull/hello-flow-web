@@ -1,8 +1,6 @@
 <template>
   <div class="project-list-page">
-    <div class="page-header">
-      <h2 class="page-title">项目列表</h2>
-    </div>
+    <PageHeader title="项目列表" />
 
     <div class="filter-bar">
       <el-radio-group v-model="statusFilter" @change="loadProjects">
@@ -18,7 +16,7 @@
       </el-button>
     </div>
 
-    <div v-if="projects.length === 0" class="empty-text">暂无项目</div>
+    <div v-if="projects.length === 0" class="hf-empty-text">暂无项目</div>
     <el-row :gutter="16">
       <el-col v-for="project in projects" :key="project.id" :span="8">
         <div class="project-card" @click="goToProject(project.id)">
@@ -55,18 +53,19 @@
       :page-size="pageSize"
       :total="total"
       layout="prev, pager, next"
-      class="pagination"
+      class="hf-pagination"
       @current-change="loadProjects"
     />
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { getProjectList, getProjectStats, getProjectMembers } from '@/api/project'
+import { getProjectList, getProjectMembers, getProjectStats } from '@/api/project'
 import { PROJECT_STATUS_MAP } from '@/utils/constants'
 import { SortDown, SortUp } from '@element-plus/icons-vue'
+import PageHeader from '@/components/common/PageHeader.vue'
 
 const router = useRouter()
 
@@ -141,20 +140,6 @@ onMounted(() => {
 <style scoped>
 .project-list-page {
   padding: var(--hf-page-padding);
-}
-
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: var(--hf-page-title-margin);
-}
-
-.page-title {
-  font-size: var(--hf-page-title-size);
-  font-weight: 700;
-  color: var(--hf-text-primary);
-  letter-spacing: -0.02em;
 }
 
 .filter-bar {
@@ -235,18 +220,5 @@ onMounted(() => {
   color: var(--hf-text-secondary);
   margin-top: 4px;
   font-weight: 500;
-}
-
-.empty-text {
-  text-align: center;
-  color: var(--hf-text-placeholder);
-  padding: 60px 0;
-  font-size: 14px;
-}
-
-.pagination {
-  margin-top: 24px;
-  display: flex;
-  justify-content: center;
 }
 </style>

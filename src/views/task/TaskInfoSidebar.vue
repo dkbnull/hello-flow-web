@@ -1,13 +1,5 @@
 <template>
-  <el-card class="info-card" shadow="never">
-    <template #header>
-      <div class="card-header">
-        <el-icon>
-          <InfoFilled />
-        </el-icon>
-        <span>任务信息</span>
-      </div>
-    </template>
+  <SectionCard title="任务信息" :icon="InfoFilled">
     <div class="info-list">
       <div class="info-row">
         <div class="info-label">
@@ -92,57 +84,26 @@
         <div class="info-value">{{ task.updatedAt }}</div>
       </div>
     </div>
-  </el-card>
+  </SectionCard>
 </template>
 
 <script setup>
 import { computed } from 'vue'
-import { TASK_TYPE_MAP, TASK_PRIORITY_MAP, TASK_STATUS } from '@/utils/constants'
+import { TASK_PRIORITY_MAP, TASK_TYPE_MAP } from '@/utils/constants'
+import { useTaskStatus } from '@/composables/useTaskStatus'
 import { Calendar, Clock, Cpu, Flag, InfoFilled, Monitor, PriceTag, RefreshRight, User } from '@element-plus/icons-vue'
+import SectionCard from '@/components/common/SectionCard.vue'
 
 const props = defineProps({
   task: { type: Object, required: true }
 })
 
-const isOverdue = computed(() => {
-  if (!props.task.dueDate) return false
-  if (props.task.status === TASK_STATUS.DONE || props.task.status === TASK_STATUS.CLOSED) return false
-  return new Date(props.task.dueDate) < new Date()
-})
+const { isOverdue: checkOverdue } = useTaskStatus()
+
+const isOverdue = computed(() => checkOverdue(props.task))
 </script>
 
 <style scoped>
-.info-card {
-  position: sticky;
-  top: 20px;
-  border-radius: var(--hf-radius-md);
-  border: 1px solid var(--hf-border);
-}
-
-.info-card :deep(.el-card__header) {
-  padding: 12px 20px;
-  background: var(--hf-bg-page);
-  border-bottom: 1px solid var(--hf-border-light);
-}
-
-.info-card :deep(.el-card__body) {
-  padding: 12px 20px;
-}
-
-.card-header {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--hf-text-primary);
-}
-
-.card-header .el-icon {
-  font-size: 16px;
-  color: var(--hf-primary);
-}
-
 .info-list {
   display: flex;
   flex-direction: column;

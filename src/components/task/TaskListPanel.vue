@@ -126,17 +126,10 @@
       @current-change="loadTasks"
     />
 
-    <el-dialog v-model="showSaveDialog" title="保存过滤器" width="400px">
-      <el-form @submit.prevent="handleSaveFilter">
-        <el-form-item label="过滤器名称">
-          <el-input v-model="newFilterName" placeholder="输入过滤器名称" maxlength="20" />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="showSaveDialog = false">取消</el-button>
-        <el-button type="primary" @click="handleSaveFilter">保存</el-button>
-      </template>
-    </el-dialog>
+    <SaveFilterDialog
+      v-model="showSaveDialog"
+      @save="handleSaveFilter"
+    />
   </div>
 </template>
 
@@ -151,6 +144,7 @@ import { useAuthStore } from '@/stores/auth'
 import { useProjectStore } from '@/stores/project'
 import { useFilterStore } from '@/stores/filter'
 import { Plus, Search } from '@element-plus/icons-vue'
+import SaveFilterDialog from '@/components/task/SaveFilterDialog.vue'
 
 const props = defineProps({
   mode: { type: String, default: 'project', validator: v => ['project', 'my'].includes(v) }
@@ -170,7 +164,6 @@ const pageSize = 20
 const quickFilter = ref('')
 const activeFilterId = ref(null)
 const showSaveDialog = ref(false)
-const newFilterName = ref('')
 
 const members = ref([])
 const sprints = ref([])
@@ -211,8 +204,7 @@ function toggleQuickFilter(type) {
   loadTasks()
 }
 
-async function handleSaveFilter() {
-  if (!newFilterName.value.trim()) return
+async function handleSaveFilter(filterName) {
   const conditions = {
     status: filters.status,
     type: filters.type,
@@ -223,12 +215,10 @@ async function handleSaveFilter() {
     sprintId: filters.sprintId
   }
   await filterStore.addFilter({
-    name: newFilterName.value.trim(),
+    name: filterName,
     projectId: props.mode === 'project' ? Number(route.params.id) : null,
     conditions: JSON.stringify(conditions)
   })
-  showSaveDialog.value = false
-  newFilterName.value = ''
 }
 
 function applySavedFilter(f) {

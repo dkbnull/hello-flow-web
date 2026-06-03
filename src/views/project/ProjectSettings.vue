@@ -1,6 +1,9 @@
 <template>
   <div class="project-settings">
     <el-form ref="formRef" :model="form" :rules="rules" label-width="100px" style="max-width: 600px">
+      <el-form-item label="项目编码">
+        <el-input :model-value="form.code" disabled />
+      </el-form-item>
       <el-form-item label="项目名称" prop="name">
         <el-input v-model="form.name" maxlength="100" />
       </el-form-item>
@@ -54,18 +57,16 @@
 import { onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { getProjectDetail, getProjectMembers, updateProject } from '@/api/project'
-import { getUserList } from '@/api/user'
-import { POSITION_CODE } from '@/utils/constants'
+import { useUserOptions } from '@/composables/useUserOptions'
 import { ElMessage } from 'element-plus'
 
 const route = useRoute()
 const formRef = ref(null)
 const saving = ref(false)
-const pmUsers = ref([])
-const devUsers = ref([])
-const qaUsers = ref([])
+const { pmUsers, devUsers, qaUsers, allUsers, loadUsers: loadAllUsers, classifyUsers } = useUserOptions()
 
 const form = ref({
+  code: '',
   name: '',
   description: '',
   pmId: null,
@@ -83,6 +84,7 @@ async function loadProject() {
     const res = await getProjectDetail(route.params.id)
     const p = res.data
     form.value = {
+      code: p.code,
       name: p.name,
       description: p.description || '',
       pmId: p.pmId,
@@ -95,17 +97,15 @@ async function loadProject() {
   }
 }
 
-async function loadUsers() {
+async function loadProjectUsers() {
   try {
-    const [memberRes, userRes] = await Promise.all([
+    const [memberRes] = await Promise.all([
       getProjectMembers(route.params.id),
-      getUserList({ pageSize: 200 })
+      loadAllUsers()
     ])
     const memberIds = (memberRes.data || []).map(m => m.userId)
-    const users = (userRes.data.records || []).filter(u => memberIds.includes(u.id))
-    pmUsers.value = users.filter(u => u.positionCode === POSITION_CODE.PM)
-    devUsers.value = users.filter(u => u.positionCode === POSITION_CODE.DEV)
-    qaUsers.value = users.filter(u => u.positionCode === POSITION_CODE.QA)
+    const projectUsers = allUsers.value.filter(u => memberIds.includes(u.id))
+    classifyUsers(projectUsers)
   } catch {
     // 忽略
   }
@@ -128,7 +128,7 @@ async function handleSave() {
 
 onMounted(() => {
   loadProject()
-  loadUsers()
+  loadProjectUsers()
 })
 </script>
 

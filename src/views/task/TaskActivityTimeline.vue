@@ -1,15 +1,9 @@
 <template>
-  <el-card class="section-card" shadow="never">
-    <template #header>
-      <div class="card-header">
-        <el-icon>
-          <Clock />
-        </el-icon>
-        <span>操作历史</span>
-        <el-button v-if="activities.length > 1" link type="primary" size="small" @click="expanded = !expanded">
-          {{ expanded ? '收起' : `查看全部 (${activities.length})` }}
-        </el-button>
-      </div>
+  <SectionCard title="操作历史" :icon="Clock">
+    <template #header-extra>
+      <el-button v-if="activities.length > 1" link type="primary" size="small" @click="expanded = !expanded">
+        {{ expanded ? '收起' : `查看全部 (${activities.length})` }}
+      </el-button>
     </template>
     <div v-if="activities.length > 0" class="history-list" :class="{ 'history-expanded': expanded }">
       <el-timeline>
@@ -19,13 +13,14 @@
         </el-timeline-item>
       </el-timeline>
     </div>
-    <div v-else class="empty-text">暂无操作记录</div>
-  </el-card>
+    <div v-else class="hf-empty-text">暂无操作记录</div>
+  </SectionCard>
 </template>
 
 <script setup>
 import { computed, ref } from 'vue'
 import { Clock } from '@element-plus/icons-vue'
+import SectionCard from '@/components/common/SectionCard.vue'
 
 const props = defineProps({
   activities: { type: Array, default: () => [] }
@@ -40,47 +35,6 @@ const displayedActivities = computed(() => {
 </script>
 
 <style scoped>
-.section-card {
-  margin-bottom: 16px;
-  border-radius: var(--hf-radius-md);
-  border: 1px solid var(--hf-border);
-}
-
-.section-card :deep(.el-card__header) {
-  padding: 12px 20px;
-  background: var(--hf-bg-page);
-  border-bottom: 1px solid var(--hf-border-light);
-}
-
-.section-card :deep(.el-card__body) {
-  padding: 16px 20px;
-}
-
-.card-header {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--hf-text-primary);
-}
-
-.card-header .el-icon {
-  font-size: 16px;
-  color: var(--hf-primary);
-}
-
-.card-header .el-button {
-  margin-left: auto;
-}
-
-.empty-text {
-  text-align: center;
-  color: var(--hf-text-placeholder);
-  padding: 24px 0;
-  font-size: 14px;
-}
-
 .history-list {
   max-height: 120px;
   overflow: hidden;

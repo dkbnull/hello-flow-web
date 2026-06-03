@@ -9,6 +9,14 @@
       @start-edit="startEdit"
       @cancel-edit="cancelEdit"
       @save="saveTask"
+      @start-task="handleStartTask"
+      @complete-dev="handleCompleteDev"
+      @review-pass="handleReviewPass"
+      @review-reject="handleReviewReject"
+      @test-pass="handleTestPass"
+      @test-reject="handleTestReject"
+      @close-task="handleCloseTask"
+      @reopen-task="handleReopenTask"
     />
 
     <div v-if="loading" v-loading="true" class="loading-placeholder" />
@@ -18,17 +26,9 @@
           <TaskEditForm :form="form" :sprints="sprints" />
         </template>
         <template v-else>
-          <el-card class="section-card" shadow="never">
-            <template #header>
-              <div class="card-header">
-                <el-icon>
-                  <Document />
-                </el-icon>
-                <span>描述</span>
-              </div>
-            </template>
+          <SectionCard title="描述" :icon="Document">
             <div class="task-description" v-html="task.description || '暂无描述'"></div>
-          </el-card>
+          </SectionCard>
         </template>
 
         <TaskSubtaskList :subtasks="subtasks" @add="showAddSubtask = true" @go-to-task="goToTask" />
@@ -42,26 +42,36 @@
         <TaskInfoSidebar :task="task" />
       </div>
     </div>
-    <div v-else class="empty-text">任务不存在或已被删除</div>
+    <div v-else class="hf-empty-text">任务不存在或已被删除</div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, reactive } from 'vue'
+import { onMounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import {
-  getTaskDetail,
-  updateTask,
-  getComments,
   addComment,
-  getSubtasks,
-  getTaskRelations,
+  closeTask,
+  completeDevTask,
   deleteTaskRelation,
-  getActivities
+  getActivities,
+  getComments,
+  getSubtasks,
+  getTaskDetail,
+  getTaskRelations,
+  passTestTask,
+  rejectReviewTask,
+  rejectTestTask,
+  reopenTask,
+  reviewPassTask,
+  startTask,
+  updateTask
 } from '@/api/task'
 import { getSprintList } from '@/api/sprint'
+import { getProjectMembers } from '@/api/project'
 import { ElMessage } from 'element-plus'
 import { Document } from '@element-plus/icons-vue'
+import SectionCard from '@/components/common/SectionCard.vue'
 import TaskDetailHeader from './TaskDetailHeader.vue'
 import TaskInfoSidebar from './TaskInfoSidebar.vue'
 import TaskCommentSection from './TaskCommentSection.vue'
@@ -155,10 +165,72 @@ async function removeRelation(relationId) {
   }
 }
 
+async function handleStatusAction(actionFn, successMsg) {
+  try {
+    await actionFn(task.value.id)
+    ElMessage.success(successMsg)
+    await loadTask()
+  } catch {
+    // 错误已在拦截器中处理
+  }
+}
+
+function handleStartTask() {
+  handleStatusAction(startTask, '任务已开始')
+}
+
+function handleCompleteDev() {
+  handleStatusAction(completeDevTask, '开发已完成')
+}
+
+function handleReviewPass() {
+  handleStatusAction(reviewPassTask, '评审通过')
+}
+
+function handleReviewReject() {
+  handleStatusAction(rejectReviewTask, '评审已驳回')
+}
+
+function handleTestPass() {
+  handleStatusAction(passTestTask, '测试通过')
+}
+
+function handleTestReject() {
+  handleStatusAction(rejectTestTask, '测试已驳回')
+}
+
+function handleCloseTask() {
+  handleStatusAction(closeTask, '任务已关闭')
+}
+
+function handleReopenTask() {
+  handleStatusAction(reopenTask, '任务已重新打开')
+}
+
 async function loadTask() {
   const res = await getTaskDetail(route.params.taskId)
   task.value = res.data
   taskNo.value = `${task.value.projectCode || 'TASK'}-${task.value.id}`
+  // 补充开发/测试工程师名称
+  if (task.value.projectId && (!task.value.developerName || !task.value.testerName)) {
+    fillMemberNames()
+  }
+}
+
+async function fillMemberNames() {
+  try {
+    const res = await getProjectMembers(task.value.projectId)
+    const members = res.data || []
+    const memberMap = new Map(members.map(m => [m.userId, m.nickname || m.username]))
+    if (!task.value.developerName && task.value.developerId) {
+      task.value.developerName = memberMap.get(task.value.developerId) || ''
+    }
+    if (!task.value.testerName && task.value.testerId) {
+      task.value.testerName = memberMap.get(task.value.testerId) || ''
+    }
+  } catch {
+    // 忽略
+  }
 }
 
 async function loadComments() {
@@ -250,47 +322,10 @@ onMounted(async () => {
   flex-shrink: 0;
 }
 
-.section-card {
-  margin-bottom: 16px;
-  border-radius: var(--hf-radius-md);
-  border: 1px solid var(--hf-border);
-}
-
-.section-card :deep(.el-card__header) {
-  padding: 12px 20px;
-  background: var(--hf-bg-page);
-  border-bottom: 1px solid var(--hf-border-light);
-}
-
-.section-card :deep(.el-card__body) {
-  padding: 16px 20px;
-}
-
-.card-header {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--hf-text-primary);
-}
-
-.card-header .el-icon {
-  font-size: 16px;
-  color: var(--hf-primary);
-}
-
 .task-description {
   font-size: 14px;
   color: var(--hf-text-regular);
   line-height: 1.7;
-}
-
-.empty-text {
-  text-align: center;
-  color: var(--hf-text-placeholder);
-  padding: 60px 0;
-  font-size: 14px;
 }
 
 @media (max-width: 1024px) {

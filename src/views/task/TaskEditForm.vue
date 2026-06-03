@@ -1,13 +1,5 @@
 <template>
-  <el-card class="section-card" shadow="never">
-    <template #header>
-      <div class="card-header">
-        <el-icon>
-          <Edit />
-        </el-icon>
-        <span>编辑任务</span>
-      </div>
-    </template>
+  <SectionCard title="编辑任务" :icon="Edit">
     <el-form :model="form" label-width="80px">
       <el-form-item label="标题" required>
         <el-input v-model="form.title" maxlength="200" />
@@ -34,47 +26,16 @@
         </el-select>
       </el-form-item>
     </el-form>
-  </el-card>
+  </SectionCard>
 </template>
 
 <script setup>
 import { Edit } from '@element-plus/icons-vue'
 import { TASK_TYPE_MAP, TASK_PRIORITY_MAP } from '@/utils/constants'
+import SectionCard from '@/components/common/SectionCard.vue'
 
 defineProps({
   form: { type: Object, required: true },
   sprints: { type: Array, default: () => [] }
 })
 </script>
-
-<style scoped>
-.section-card {
-  margin-bottom: 16px;
-  border-radius: var(--hf-radius-md);
-  border: 1px solid var(--hf-border);
-}
-
-.section-card :deep(.el-card__header) {
-  padding: 12px 20px;
-  background: var(--hf-bg-page);
-  border-bottom: 1px solid var(--hf-border-light);
-}
-
-.section-card :deep(.el-card__body) {
-  padding: 16px 20px;
-}
-
-.card-header {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--hf-text-primary);
-}
-
-.card-header .el-icon {
-  font-size: 16px;
-  color: var(--hf-primary);
-}
-</style>

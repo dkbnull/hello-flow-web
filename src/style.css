@@ -139,3 +139,17 @@ html, body, #app {
 .el-select__wrapper {
   border-radius: var(--hf-radius-sm) !important;
 }
+
+/* 全局公共样式 */
+.hf-empty-text {
+  text-align: center;
+  color: var(--hf-text-placeholder);
+  padding: 40px 0;
+  font-size: 14px;
+}
+
+.hf-pagination {
+  margin-top: 16px;
+  display: flex;
+  justify-content: center;
+}

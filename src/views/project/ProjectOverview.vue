@@ -42,7 +42,7 @@
             <div v-if="currentSprint.goal" class="sprint-goal">目标：{{ currentSprint.goal }}</div>
             <el-progress :percentage="sprintProgress" :color="sprintProgress === 100 ? '#67C23A' : '#409EFF'" />
           </div>
-          <div v-else class="empty-text">暂无进行中的Sprint</div>
+          <div v-else class="hf-empty-text">暂无进行中的Sprint</div>
         </el-card>
       </el-col>
 
@@ -64,7 +64,7 @@
     <!-- 最近动态 -->
     <el-card shadow="hover" class="activity-card">
       <template #header><span>最近动态</span></template>
-      <div v-if="activities.length === 0" class="empty-text">暂无动态</div>
+      <div v-if="activities.length === 0" class="hf-empty-text">暂无动态</div>
       <el-timeline v-else>
         <el-timeline-item
           v-for="activity in activities"
@@ -257,11 +257,5 @@ onMounted(async () => {
 .activity-action {
   color: var(--hf-primary);
   margin: 0 4px;
-}
-
-.empty-text {
-  text-align: center;
-  color: var(--hf-text-placeholder);
-  padding: 20px 0;
 }
 </style>

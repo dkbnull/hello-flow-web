@@ -66,7 +66,7 @@
               <el-button link type="primary" @click="$router.push('/my-tasks')">查看全部</el-button>
             </div>
           </template>
-          <div v-if="myTasks.length === 0" class="empty-text">暂无任务</div>
+          <div v-if="myTasks.length === 0" class="hf-empty-text">暂无任务</div>
           <div
             v-for="task in myTasks"
             :key="task.id"
@@ -92,7 +92,7 @@
               <el-button link type="primary" @click="$router.push('/notifications')">查看全部</el-button>
             </div>
           </template>
-          <div v-if="notifications.length === 0" class="empty-text">暂无通知</div>
+          <div v-if="notifications.length === 0" class="hf-empty-text">暂无通知</div>
           <div
             v-for="notification in notifications"
             :key="notification.id"
@@ -109,7 +109,7 @@
       <template #header>
         <span class="card-header-title">项目进度概览</span>
       </template>
-      <div v-if="projectProgress.length === 0" class="empty-text">暂无项目</div>
+      <div v-if="projectProgress.length === 0" class="hf-empty-text">暂无项目</div>
       <el-row :gutter="16">
         <el-col v-for="project in projectProgress" :key="project.id" :span="8">
           <div class="project-item" @click="$router.push(`/projects/${project.id}`)">
@@ -130,14 +130,14 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { getMyTasks } from '@/api/task'
 import { getNotificationList } from '@/api/notification'
 import { getProjectList, getProjectStats } from '@/api/project'
 import { TASK_STATUS_MAP } from '@/utils/constants'
 import { useDateFormat } from '@/composables/useDateFormat'
-import { Clock, EditPen, CircleCheck, WarningFilled } from '@element-plus/icons-vue'
+import { CircleCheck, Clock, EditPen, WarningFilled } from '@element-plus/icons-vue'
 
 const router = useRouter()
 const { formatRelativeTime } = useDateFormat()
@@ -308,13 +308,6 @@ onMounted(async () => {
   font-size: 15px;
   font-weight: 600;
   color: var(--hf-text-primary);
-}
-
-.empty-text {
-  text-align: center;
-  color: var(--hf-text-placeholder);
-  padding: 40px 0;
-  font-size: 14px;
 }
 
 .task-item {
