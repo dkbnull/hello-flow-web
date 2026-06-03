@@ -5,6 +5,7 @@
       :task-no="taskNo"
       :editing="editing"
       :saving="saving"
+      :project-archived="projectArchived"
       @go-back="goBack"
       @start-edit="startEdit"
       @cancel-edit="cancelEdit"
@@ -47,7 +48,7 @@
 </template>
 
 <script setup>
-import { onMounted, reactive, ref } from 'vue'
+import { onMounted, reactive, ref, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import {
   addComment,
@@ -68,7 +69,8 @@ import {
   updateTask
 } from '@/api/task'
 import { getSprintList } from '@/api/sprint'
-import { getProjectMembers } from '@/api/project'
+import { getProjectDetail, getProjectMembers } from '@/api/project'
+import { PROJECT_STATUS } from '@/utils/constants'
 import { ElMessage } from 'element-plus'
 import { Document } from '@element-plus/icons-vue'
 import SectionCard from '@/components/common/SectionCard.vue'
@@ -95,6 +97,9 @@ const sprints = ref([])
 const submittingComment = ref(false)
 const showAddSubtask = ref(false)
 const showAddRelation = ref(false)
+const projectStatus = ref(null)
+
+const projectArchived = computed(() => projectStatus.value === PROJECT_STATUS.ARCHIVED)
 
 const form = reactive({
   title: '',
@@ -211,6 +216,15 @@ async function loadTask() {
   const res = await getTaskDetail(route.params.taskId)
   task.value = res.data
   taskNo.value = `${task.value.projectCode || 'TASK'}-${task.value.id}`
+  // 加载项目状态，判断是否归档
+  if (task.value.projectId) {
+    try {
+      const projRes = await getProjectDetail(task.value.projectId)
+      projectStatus.value = projRes.data.status
+    } catch {
+      // 忽略
+    }
+  }
   // 补充开发/测试工程师名称
   if (task.value.projectId && (!task.value.developerName || !task.value.testerName)) {
     fillMemberNames()

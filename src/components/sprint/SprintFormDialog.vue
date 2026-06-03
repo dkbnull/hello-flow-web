@@ -1,11 +1,11 @@
 <template>
-  <el-dialog v-model="visible" :title="isEdit ? '编辑Sprint' : '创建Sprint'" width="500px">
+  <el-dialog v-model="visible" :title="isEdit ? '编辑迭代' : '创建迭代'" width="500px">
     <el-form ref="formRef" :model="form" :rules="formRules" label-width="100px">
       <el-form-item label="名称" prop="name">
-        <el-input v-model="form.name" placeholder="请输入Sprint名称" maxlength="100" />
+        <el-input v-model="form.name" placeholder="请输入迭代名称" maxlength="100" />
       </el-form-item>
       <el-form-item label="目标" prop="goal">
-        <el-input v-model="form.goal" type="textarea" :rows="3" placeholder="请输入Sprint目标" maxlength="500" />
+        <el-input v-model="form.goal" type="textarea" :rows="3" placeholder="请输入迭代目标" maxlength="500" />
       </el-form-item>
       <el-form-item label="开始日期" prop="startDate">
         <el-date-picker v-model="form.startDate" type="date" placeholder="请选择日期" value-format="YYYY-MM-DD" />
@@ -48,7 +48,7 @@ const defaultForm = { id: null, name: '', goal: '', startDate: '', endDate: '' }
 const form = ref({ ...defaultForm })
 
 const formRules = {
-  name: [{ required: true, message: '请输入Sprint名称', trigger: 'blur' }],
+  name: [{ required: true, message: '请输入迭代名称', trigger: 'blur' }],
   startDate: [{ required: true, message: '请选择开始日期', trigger: 'change' }],
   endDate: [{ required: true, message: '请选择结束日期', trigger: 'change' }]
 }
@@ -78,10 +78,10 @@ async function handleSave() {
     if (isEdit.value) {
       const { id, ...data } = form.value
       await updateSprint(id, data)
-      ElMessage.success('Sprint更新成功')
+      ElMessage.success('迭代更新成功')
     } else {
       await createSprint(props.projectId, form.value)
-      ElMessage.success('Sprint创建成功')
+      ElMessage.success('迭代创建成功')
     }
     visible.value = false
     emit('saved')

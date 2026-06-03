@@ -32,7 +32,7 @@
       <!-- 当前Sprint -->
       <el-col :span="12">
         <el-card shadow="hover">
-          <template #header><span>当前Sprint</span></template>
+          <template #header><span>当前迭代</span></template>
           <div v-if="currentSprint" class="sprint-info">
             <div class="sprint-name">{{ currentSprint.name }} - {{
                 SPRINT_STATUS_MAP[currentSprint.status]?.label
@@ -42,7 +42,7 @@
             <div v-if="currentSprint.goal" class="sprint-goal">目标：{{ currentSprint.goal }}</div>
             <el-progress :percentage="sprintProgress" :color="sprintProgress === 100 ? '#67C23A' : '#409EFF'" />
           </div>
-          <div v-else class="hf-empty-text">暂无进行中的Sprint</div>
+          <div v-else class="hf-empty-text">暂无进行中的迭代</div>
         </el-card>
       </el-col>
 

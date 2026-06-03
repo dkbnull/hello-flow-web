@@ -5,7 +5,7 @@
       <el-tag v-if="project" :type="PROJECT_STATUS_MAP[project.status]?.tagType ?? 'info'">
         {{ PROJECT_STATUS_MAP[project.status]?.label || '未知' }}
       </el-tag>
-      <el-button v-if="project" type="primary" size="default" @click="showCreateDialog = true">
+      <el-button v-if="project && !isArchived" type="primary" size="default" @click="showCreateDialog = true">
         <el-icon>
           <Plus />
         </el-icon>
@@ -41,12 +41,14 @@ import { useRoute, useRouter } from 'vue-router'
 import { getProjectDetail } from '@/api/project'
 import { useProjectStore } from '@/stores/project'
 import { PROJECT_STATUS_MAP } from '@/utils/constants'
+import { useProjectArchive } from '@/composables/useProjectArchive'
 import { Plus } from '@element-plus/icons-vue'
 import CreateTaskDialog from '@/components/task/CreateTaskDialog.vue'
 
 const route = useRoute()
 const router = useRouter()
 const projectStore = useProjectStore()
+const { isArchived } = useProjectArchive()
 
 const project = ref(null)
 const activeTab = ref('overview')

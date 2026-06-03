@@ -2,26 +2,26 @@
   <el-dialog v-model="visible" :title="isEdit ? '编辑项目' : '新建项目'" width="520px">
     <el-form ref="formRef" :model="form" :rules="formRules" label-width="80px">
       <el-form-item label="项目名称" prop="name">
-        <el-input v-model="form.name" maxlength="100" />
+        <el-input v-model="form.name" maxlength="100" :disabled="isArchived" />
       </el-form-item>
       <el-form-item label="项目编码" prop="code">
-        <el-input v-model="form.code" maxlength="20" placeholder="如 HF、PROJ 等" />
+        <el-input v-model="form.code" maxlength="20" placeholder="如 HF、PROJ 等" :disabled="isArchived" />
       </el-form-item>
       <el-form-item label="项目描述" prop="description">
-        <el-input v-model="form.description" type="textarea" :rows="3" />
+        <el-input v-model="form.description" type="textarea" :rows="3" :disabled="isArchived" />
       </el-form-item>
       <el-form-item label="项目经理" prop="pmId">
-        <el-select v-model="form.pmId" placeholder="请选择" clearable filterable>
+        <el-select v-model="form.pmId" placeholder="请选择" clearable filterable :disabled="isArchived">
           <el-option v-for="u in pmUsers" :key="u.id" :label="u.nickname || u.username" :value="u.id" />
         </el-select>
       </el-form-item>
       <el-form-item label="开发主管" prop="devLeadId">
-        <el-select v-model="form.devLeadId" placeholder="请选择" clearable filterable>
+        <el-select v-model="form.devLeadId" placeholder="请选择" clearable filterable :disabled="isArchived">
           <el-option v-for="u in devUsers" :key="u.id" :label="u.nickname || u.username" :value="u.id" />
         </el-select>
       </el-form-item>
       <el-form-item label="测试主管" prop="testLeadId">
-        <el-select v-model="form.testLeadId" placeholder="请选择" clearable filterable>
+        <el-select v-model="form.testLeadId" placeholder="请选择" clearable filterable :disabled="isArchived">
           <el-option v-for="u in qaUsers" :key="u.id" :label="u.nickname || u.username" :value="u.id" />
         </el-select>
       </el-form-item>
@@ -42,6 +42,7 @@
 <script setup>
 import { ref, computed, watch } from 'vue'
 import { createProject, updateProject } from '@/api/project'
+import { PROJECT_STATUS } from '@/utils/constants'
 import { ElMessage } from 'element-plus'
 
 const props = defineProps({
@@ -60,6 +61,7 @@ const visible = computed({
 })
 
 const isEdit = computed(() => !!props.editData?.id)
+const isArchived = computed(() => props.editData?.status === PROJECT_STATUS.ARCHIVED)
 
 const saving = ref(false)
 const formRef = ref(null)

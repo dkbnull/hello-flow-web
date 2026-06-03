@@ -24,7 +24,7 @@
           </el-select>
         </el-col>
         <el-col v-if="mode === 'project'" :span="4">
-          <el-select v-model="filters.sprintId" placeholder="Sprint" clearable size="default" @change="loadTasks">
+          <el-select v-model="filters.sprintId" placeholder="选择迭代" clearable size="default" @change="loadTasks">
             <el-option v-for="s in sprints" :key="s.id" :label="s.name" :value="s.id" />
           </el-select>
         </el-col>

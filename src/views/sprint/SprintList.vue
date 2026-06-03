@@ -2,16 +2,16 @@
   <div class="sprint-list">
     <PageHeader title="迭代管理">
       <template #actions>
-        <el-button v-if="canCreate" type="primary" size="default" @click="openCreateDialog">
+        <el-button v-if="canCreate && !isArchived" type="primary" size="default" @click="openCreateDialog">
           <el-icon>
             <Plus />
           </el-icon>
-          创建Sprint
+          创建迭代
         </el-button>
       </template>
     </PageHeader>
 
-    <div v-if="sprints.length === 0" class="hf-empty-text">暂无Sprint</div>
+    <div v-if="sprints.length === 0" class="hf-empty-text">暂无迭代</div>
     <HfTable
       v-else
       :columns="columns"
@@ -35,6 +35,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getSprintList, startSprint, completeSprint } from '@/api/sprint'
 import { usePermission } from '@/composables/usePermission'
+import { useProjectArchive } from '@/composables/useProjectArchive'
 import { SPRINT_STATUS_MAP } from '@/utils/constants'
 import { ElMessage } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
@@ -45,6 +46,7 @@ import SprintFormDialog from '@/components/sprint/SprintFormDialog.vue'
 const route = useRoute()
 const router = useRouter()
 const { canManageProject } = usePermission()
+const { isArchived } = useProjectArchive()
 
 const sprints = ref([])
 const showFormDialog = ref(false)
@@ -62,7 +64,7 @@ const columns = computed(() => [
   {
     prop: 'operator', label: '操作', width: 200, view: false, edit: false, delete: false, actions: [
       { label: '查看', action: 'view', type: 'primary' },
-      ...(canManage.value ? [
+      ...(!isArchived.value && canManage.value ? [
         { label: '开始', action: 'start', type: 'success' },
         { label: '完成', action: 'complete', type: 'warning' },
         { label: '编辑', action: 'edit', type: 'primary' }
@@ -109,7 +111,7 @@ async function loadSprints() {
 async function handleStart(sprint) {
   try {
     await startSprint(sprint.id)
-    ElMessage.success('Sprint已开始')
+    ElMessage.success('迭代已开始')
     await loadSprints()
   } catch {
     // 错误已在拦截器中处理
@@ -119,7 +121,7 @@ async function handleStart(sprint) {
 async function handleComplete(sprint) {
   try {
     await completeSprint(sprint.id)
-    ElMessage.success('Sprint已完成')
+    ElMessage.success('迭代已完成')
     await loadSprints()
   } catch {
     // 错误已在拦截器中处理

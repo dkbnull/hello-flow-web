@@ -15,7 +15,7 @@
         <el-descriptions-item label="日期">{{ sprint.startDate }} ~ {{ sprint.endDate }}</el-descriptions-item>
       </el-descriptions>
 
-      <!-- Sprint看板 -->
+      <!-- 迭代看板 -->
       <div class="sprint-board">
         <h4 style="margin: 16px 0 8px">任务看板</h4>
         <BoardViewInline :project-id="projectId" :sprint-id="sprintId" />

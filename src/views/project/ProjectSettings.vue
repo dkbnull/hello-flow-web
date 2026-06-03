@@ -5,13 +5,13 @@
         <el-input :model-value="form.code" disabled />
       </el-form-item>
       <el-form-item label="项目名称" prop="name">
-        <el-input v-model="form.name" maxlength="100" />
+        <el-input v-model="form.name" maxlength="100" :disabled="isArchived" />
       </el-form-item>
       <el-form-item label="项目描述" prop="description">
-        <el-input v-model="form.description" type="textarea" :rows="4" />
+        <el-input v-model="form.description" type="textarea" :rows="4" :disabled="isArchived" />
       </el-form-item>
       <el-form-item label="项目经理" prop="pmId">
-        <el-select v-model="form.pmId" placeholder="请选择" clearable filterable>
+        <el-select v-model="form.pmId" placeholder="请选择" clearable filterable :disabled="isArchived">
           <el-option
             v-for="user in pmUsers"
             :key="user.id"
@@ -21,7 +21,7 @@
         </el-select>
       </el-form-item>
       <el-form-item label="开发主管" prop="devLeadId">
-        <el-select v-model="form.devLeadId" placeholder="请选择" clearable filterable>
+        <el-select v-model="form.devLeadId" placeholder="请选择" clearable filterable :disabled="isArchived">
           <el-option
             v-for="user in devUsers"
             :key="user.id"
@@ -31,7 +31,7 @@
         </el-select>
       </el-form-item>
       <el-form-item label="测试主管" prop="testLeadId">
-        <el-select v-model="form.testLeadId" placeholder="请选择" clearable filterable>
+        <el-select v-model="form.testLeadId" placeholder="请选择" clearable filterable :disabled="isArchived">
           <el-option
             v-for="user in qaUsers"
             :key="user.id"
@@ -58,11 +58,15 @@ import { onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { getProjectDetail, getProjectMembers, updateProject } from '@/api/project'
 import { useUserOptions } from '@/composables/useUserOptions'
+import { useProjectArchive } from '@/composables/useProjectArchive'
+import { useProjectStore } from '@/stores/project'
 import { ElMessage } from 'element-plus'
 
 const route = useRoute()
 const formRef = ref(null)
 const saving = ref(false)
+const projectStore = useProjectStore()
+const { isArchived } = useProjectArchive()
 const { pmUsers, devUsers, qaUsers, allUsers, loadUsers: loadAllUsers, classifyUsers } = useUserOptions()
 
 const form = ref({
@@ -118,6 +122,9 @@ async function handleSave() {
   saving.value = true
   try {
     await updateProject(route.params.id, form.value)
+    // 更新 store 中的项目状态，使归档限制立即生效
+    const res = await getProjectDetail(route.params.id)
+    projectStore.setCurrentProject(res.data)
     ElMessage.success('保存成功')
   } catch {
     // 错误已在拦截器中处理

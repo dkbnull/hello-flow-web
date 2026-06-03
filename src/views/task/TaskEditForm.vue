@@ -20,7 +20,7 @@
       <el-form-item label="到期时间">
         <el-date-picker v-model="form.dueDate" type="date" placeholder="请选择" value-format="YYYY-MM-DD" />
       </el-form-item>
-      <el-form-item label="Sprint">
+      <el-form-item label="所属迭代">
         <el-select v-model="form.sprintId" placeholder="请选择" clearable>
           <el-option v-for="s in sprints" :key="s.id" :label="s.name" :value="s.id" />
         </el-select>

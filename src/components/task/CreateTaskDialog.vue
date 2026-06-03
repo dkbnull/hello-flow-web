@@ -44,7 +44,7 @@
           <el-option v-for="m in qaMembers" :key="m.userId" :label="m.nickname" :value="m.userId" />
         </el-select>
       </el-form-item>
-      <el-form-item label="所属Sprint" prop="sprintId">
+      <el-form-item label="所属迭代" prop="sprintId">
         <el-select v-model="form.sprintId" placeholder="请选择" clearable>
           <el-option v-for="s in sprints" :key="s.id" :label="s.name" :value="s.id" />
         </el-select>

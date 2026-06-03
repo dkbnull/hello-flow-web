@@ -3,7 +3,7 @@
     <PageHeader title="项目成员">
       <template #actions>
         <el-button
-          v-if="canManageProject"
+          v-if="canManageProject && !isArchived"
           type="primary"
           size="default"
           @click="showAddDialog = true"
@@ -21,7 +21,7 @@
       <el-table-column prop="username" label="用户名" />
       <el-table-column prop="positionName" label="职位" />
       <el-table-column prop="joinedAt" label="加入时间" />
-      <el-table-column v-if="canManageProject" label="操作" width="100">
+      <el-table-column v-if="canManageProject && !isArchived" label="操作" width="100">
         <template #default="{ row }">
           <el-popconfirm title="确定移除该成员？" @confirm="handleRemove(row.userId)">
             <template #reference>
@@ -48,6 +48,7 @@ import { useRoute } from 'vue-router'
 import { getProjectMembers, removeProjectMember } from '@/api/project'
 import { getUserList } from '@/api/user'
 import { usePermission } from '@/composables/usePermission'
+import { useProjectArchive } from '@/composables/useProjectArchive'
 import { ElMessage } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
 import PageHeader from '@/components/common/PageHeader.vue'
@@ -55,6 +56,7 @@ import AddMemberDialog from '@/components/project/AddMemberDialog.vue'
 
 const route = useRoute()
 const { canManageProject } = usePermission()
+const { isArchived } = useProjectArchive()
 
 const members = ref([])
 const showAddDialog = ref(false)
