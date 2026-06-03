@@ -49,7 +49,7 @@
             >
               重新打开
             </el-button>
-            <el-button type="primary" size="default" @click="$emit('start-edit')">编辑</el-button>
+            <el-button plain size="default" @click="$emit('start-edit')">编辑</el-button>
           </template>
           <template v-else>
             <el-button size="default" @click="$emit('cancel-edit')">取消</el-button>
@@ -143,10 +143,9 @@ const canReopenTask = computed(() => isAdmin.value || isPM.value)
 }
 
 .task-no {
-  font-size: 13px;
+  font-size: 16px;
   font-weight: 600;
-  color: var(--hf-text-secondary);
-  font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+  color: var(--hf-text-primary);
 }
 
 .header-title {

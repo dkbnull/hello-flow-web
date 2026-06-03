@@ -11,7 +11,9 @@
       <el-tag :type="TASK_TYPE_MAP[sub.type]?.tagType ?? 'info'" size="small">
         {{ TASK_TYPE_MAP[sub.type]?.label }}
       </el-tag>
+      <span class="task-code">{{ sub.taskCode || sub.id }}</span>
       <span class="subtask-title">{{ sub.title }}</span>
+      <span v-if="sub.developerName" class="task-assignee">{{ sub.developerName }}</span>
     </div>
   </SectionCard>
 </template>
@@ -47,12 +49,31 @@ defineEmits(['add', 'go-to-task'])
   margin-top: 4px;
 }
 
+.task-code {
+  font-size: 14px;
+  color: var(--hf-primary);
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
 .subtask-title {
   flex: 1;
   font-size: 14px;
-  color: var(--hf-text-primary);
+  color: var(--hf-primary);
+  cursor: pointer;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  transition: color 0.2s;
+}
+
+.subtask-title:hover {
+  color: var(--hf-primary-dark, var(--hf-primary));
+}
+
+.task-assignee {
+  font-size: 12px;
+  color: var(--hf-text-secondary);
+  flex-shrink: 0;
 }
 </style>

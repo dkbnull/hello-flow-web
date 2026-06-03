@@ -32,6 +32,8 @@
           </SectionCard>
         </template>
 
+        <TaskParentCard :parent-task="parentTask" @go-to-task="goToTask" @add="showAddParent = true"
+                        @remove="removeParent" />
         <TaskSubtaskList :subtasks="subtasks" @add="showAddSubtask = true" @go-to-task="goToTask" />
         <TaskRelationList :relations="relations" @add="showAddRelation = true" @remove="removeRelation"
                           @go-to-task="goToTask" />
@@ -44,11 +46,33 @@
       </div>
     </div>
     <div v-else class="hf-empty-text">任务不存在或已被删除</div>
+
+    <!-- 创建子任务弹窗 -->
+    <CreateTaskDialog
+      v-model="showAddSubtask"
+      :project-id="task?.projectId"
+      :parent-task-id="task?.id"
+      @created="onSubtaskCreated"
+    />
+    <!-- 添加关联任务弹窗 -->
+    <AddRelationDialog
+      v-model="showAddRelation"
+      :task-id="task?.id"
+      :project-id="task?.projectId"
+      @created="onRelationCreated"
+    />
+    <!-- 设置父任务弹窗 -->
+    <AddParentDialog
+      v-model="showAddParent"
+      :task-id="task?.id"
+      :project-id="task?.projectId"
+      @selected="setParent"
+    />
   </div>
 </template>
 
 <script setup>
-import { onMounted, reactive, ref, computed } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import {
   addComment,
@@ -81,6 +105,10 @@ import TaskSubtaskList from './TaskSubtaskList.vue'
 import TaskRelationList from './TaskRelationList.vue'
 import TaskActivityTimeline from './TaskActivityTimeline.vue'
 import TaskEditForm from './TaskEditForm.vue'
+import TaskParentCard from './TaskParentCard.vue'
+import CreateTaskDialog from '@/components/task/CreateTaskDialog.vue'
+import AddRelationDialog from './AddRelationDialog.vue'
+import AddParentDialog from './AddParentDialog.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -97,7 +125,9 @@ const sprints = ref([])
 const submittingComment = ref(false)
 const showAddSubtask = ref(false)
 const showAddRelation = ref(false)
+const showAddParent = ref(false)
 const projectStatus = ref(null)
+const parentTask = ref(null)
 
 const projectArchived = computed(() => projectStatus.value === PROJECT_STATUS.ARCHIVED)
 
@@ -113,7 +143,11 @@ const form = reactive({
 const taskNo = ref('')
 
 function goBack() {
-  router.back()
+  if (task.value?.projectId) {
+    router.push({ name: 'ProjectTasks', params: { id: task.value.projectId } })
+  } else {
+    router.push({ name: 'MyTasks' })
+  }
 }
 
 function goToTask(taskId) {
@@ -170,6 +204,35 @@ async function removeRelation(relationId) {
   }
 }
 
+function onSubtaskCreated() {
+  loadSubtasks()
+}
+
+function onRelationCreated() {
+  loadRelations()
+}
+
+async function removeParent() {
+  try {
+    await updateTask(task.value.id, { parentId: null })
+    parentTask.value = null
+    await loadTask()
+    ElMessage.success('已移除父任务')
+  } catch {
+    // 错误已在拦截器中处理
+  }
+}
+
+async function setParent(parentId) {
+  try {
+    await updateTask(task.value.id, { parentId })
+    await loadTask()
+    ElMessage.success('已设置父任务')
+  } catch {
+    // 错误已在拦截器中处理
+  }
+}
+
 async function handleStatusAction(actionFn, successMsg) {
   try {
     await actionFn(task.value.id)
@@ -215,7 +278,7 @@ function handleReopenTask() {
 async function loadTask() {
   const res = await getTaskDetail(route.params.taskId)
   task.value = res.data
-  taskNo.value = `${task.value.projectCode || 'TASK'}-${task.value.id}`
+  taskNo.value = task.value.taskCode || `${task.value.projectCode || 'TASK'}-${task.value.id}`
   // 加载项目状态，判断是否归档
   if (task.value.projectId) {
     try {
@@ -228,6 +291,21 @@ async function loadTask() {
   // 补充开发/测试工程师名称
   if (task.value.projectId && (!task.value.developerName || !task.value.testerName)) {
     fillMemberNames()
+  }
+  // 加载父任务详情
+  if (task.value.parentId) {
+    loadParentTask()
+  } else {
+    parentTask.value = null
+  }
+}
+
+async function loadParentTask() {
+  try {
+    const res = await getTaskDetail(task.value.parentId)
+    parentTask.value = res.data
+  } catch {
+    parentTask.value = null
   }
 }
 
@@ -293,7 +371,14 @@ async function loadSprints() {
   }
 }
 
-onMounted(async () => {
+// 路由参数变化时重新加载数据（同组件内跳转不会重新挂载）
+watch(() => route.params.taskId, (newId) => {
+  if (newId) {
+    loadAll()
+  }
+})
+
+async function loadAll() {
   loading.value = true
   try {
     await loadTask()
@@ -309,6 +394,10 @@ onMounted(async () => {
   } finally {
     loading.value = false
   }
+}
+
+onMounted(async () => {
+  await loadAll()
 })
 </script>
 
