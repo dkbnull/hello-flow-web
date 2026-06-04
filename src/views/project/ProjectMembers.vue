@@ -31,6 +31,16 @@
       :all-users="allUsers"
       @saved="loadMembers"
     />
+
+    <ConfirmDialog
+      v-model="showRemoveDialog"
+      title="移除成员"
+      :message="`确定要将成员「${removeTarget?.nickname || removeTarget?.username}」从项目中移除吗？`"
+      type="danger"
+      confirm-text="移除"
+      :loading="removing"
+      @confirm="confirmRemove"
+    />
   </div>
 </template>
 
@@ -46,6 +56,7 @@ import { Plus } from '@element-plus/icons-vue'
 import PageHeader from '@/components/common/PageHeader.vue'
 import HfTable from '@/components/common/HfTable.vue'
 import AddMemberDialog from '@/components/project/AddMemberDialog.vue'
+import ConfirmDialog from '@/components/common/ConfirmDialog.vue'
 
 const route = useRoute()
 const { canManageProject } = usePermission()
@@ -70,6 +81,9 @@ const columns = computed(() => {
 
 const members = ref([])
 const showAddDialog = ref(false)
+const showRemoveDialog = ref(false)
+const removeTarget = ref(null)
+const removing = ref(false)
 const allUsers = ref([])
 
 async function loadMembers() {
@@ -90,19 +104,25 @@ async function loadAllUsers() {
   }
 }
 
-async function handleRemove(userId) {
+async function confirmRemove() {
+  if (!removeTarget.value) return
+  removing.value = true
   try {
-    await removeProjectMember(route.params.id, userId)
+    await removeProjectMember(route.params.id, removeTarget.value.userId)
     ElMessage.success('移除成功')
+    showRemoveDialog.value = false
     await loadMembers()
   } catch {
     // 错误已在拦截器中处理
+  } finally {
+    removing.value = false
   }
 }
 
 function handleAction({ action, row }) {
   if (action === 'remove') {
-    handleRemove(row.userId)
+    removeTarget.value = row
+    showRemoveDialog.value = true
   }
 }
 

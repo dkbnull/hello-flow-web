@@ -1,5 +1,5 @@
 <template>
-  <el-dialog v-model="visible" :title="isEdit ? '编辑用户' : '新建用户'" width="520px"
+  <el-dialog v-model="visible" :title="isEdit ? '编辑用户' : '新建用户'" width="520px" align-center
              @opened="formRef?.clearValidate()">
     <el-form ref="formRef" :model="form" :rules="formRules" label-width="80px">
       <el-form-item v-if="!isEdit" label="用户名" prop="username">

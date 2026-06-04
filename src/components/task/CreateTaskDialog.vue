@@ -3,6 +3,7 @@
     v-model="visible"
     :title="parentTaskId ? '创建子任务' : '创建任务'"
     width="600px"
+    align-center
     :close-on-click-modal="false"
     @opened="formRef?.clearValidate()"
     @close="handleClose"

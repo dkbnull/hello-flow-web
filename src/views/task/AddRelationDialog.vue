@@ -3,6 +3,7 @@
     v-model="visible"
     title="添加关联任务"
     width="500px"
+    align-center
     :close-on-click-modal="false"
     @close="handleClose"
   >

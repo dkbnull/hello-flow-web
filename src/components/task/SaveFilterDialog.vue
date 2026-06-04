@@ -1,5 +1,5 @@
 <template>
-  <el-dialog v-model="visible" title="保存过滤器" width="400px">
+  <el-dialog v-model="visible" title="保存过滤器" width="400px" align-center>
     <el-form @submit.prevent="handleSave">
       <el-form-item label="过滤器名称">
         <el-input v-model="filterName" placeholder="输入过滤器名称" maxlength="20" />

@@ -1,5 +1,5 @@
 <template>
-  <el-dialog v-model="visible" :title="isEdit ? '编辑迭代' : '创建迭代'" width="500px">
+  <el-dialog v-model="visible" :title="isEdit ? '编辑迭代' : '创建迭代'" width="500px" align-center>
     <el-form ref="formRef" :model="form" :rules="formRules" label-width="100px">
       <el-form-item label="名称" prop="name">
         <el-input v-model="form.name" placeholder="请输入迭代名称" maxlength="100" />

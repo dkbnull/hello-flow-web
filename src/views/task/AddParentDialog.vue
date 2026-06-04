@@ -3,6 +3,7 @@
     v-model="visible"
     title="设置父任务"
     width="500px"
+    align-center
     :close-on-click-modal="false"
     @close="handleClose"
   >

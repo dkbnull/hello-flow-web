@@ -1,5 +1,5 @@
 <template>
-  <el-dialog v-model="visible" title="添加成员" width="400px">
+  <el-dialog v-model="visible" title="添加成员" width="400px" align-center>
     <el-select v-model="selectedUserId" placeholder="请选择用户" filterable style="width: 100%">
       <el-option
         v-for="user in availableUsers"

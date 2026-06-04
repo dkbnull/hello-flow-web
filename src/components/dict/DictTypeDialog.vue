@@ -1,5 +1,5 @@
 <template>
-  <el-dialog v-model="visible" :title="isEdit ? '编辑字典类型' : '新增字典类型'" width="480px">
+  <el-dialog v-model="visible" :title="isEdit ? '编辑字典类型' : '新增字典类型'" width="480px" align-center>
     <el-form ref="formRef" :model="form" :rules="formRules" label-width="70px">
       <el-form-item label="名称" prop="name">
         <el-input v-model="form.name" />

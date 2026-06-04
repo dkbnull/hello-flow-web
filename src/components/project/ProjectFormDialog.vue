@@ -1,5 +1,5 @@
 <template>
-  <el-dialog v-model="visible" :title="isEdit ? '编辑项目' : '新建项目'" width="520px">
+  <el-dialog v-model="visible" :title="isEdit ? '编辑项目' : '新建项目'" width="520px" align-center>
     <el-form ref="formRef" :model="form" :rules="formRules" label-width="80px">
       <el-form-item label="项目名称" prop="name">
         <el-input v-model="form.name" maxlength="100" :disabled="isArchived" />
