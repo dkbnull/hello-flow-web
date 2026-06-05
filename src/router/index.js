@@ -158,6 +158,12 @@ const routes = [
     ]
   },
   {
+    path: '/403',
+    name: 'Forbidden',
+    component: () => import('@/views/Forbidden.vue'),
+    meta: { title: '访问受限', guest: true }
+  },
+  {
     path: '/:pathMatch(.*)*',
     name: 'NotFound',
     component: () => import('@/views/NotFound.vue'),
@@ -184,7 +190,7 @@ router.beforeEach(async (to, from, next) => {
   }
 
   if (to.meta.requiresAdmin && !authStore.isAdmin) {
-    return next({ name: 'Dashboard' })
+    return next({ name: 'Forbidden' })
   }
 
   if (authStore.isLoggedIn && !authStore.user && !authStore.userLoading) {
