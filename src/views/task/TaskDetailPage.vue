@@ -76,25 +76,18 @@ import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import {
   addComment,
-  closeTask,
-  completeDevTask,
   deleteTaskRelation,
   getActivities,
   getComments,
   getSubtasks,
   getTaskDetail,
   getTaskRelations,
-  passTestTask,
-  rejectReviewTask,
-  rejectTestTask,
-  reopenTask,
-  reviewPassTask,
-  startTask,
+  transitionTask,
   updateTask
 } from '@/api/task'
 import { getSprintList } from '@/api/sprint'
 import { getProjectDetail, getProjectMembers } from '@/api/project'
-import { PROJECT_STATUS } from '@/utils/constants'
+import { PROJECT_STATUS, TASK_STATUS } from '@/utils/constants'
 import { ElMessage } from 'element-plus'
 import { Document } from '@element-plus/icons-vue'
 import SectionCard from '@/components/common/SectionCard.vue'
@@ -233,9 +226,9 @@ async function setParent(parentId) {
   }
 }
 
-async function handleStatusAction(actionFn, successMsg) {
+async function handleTransition(targetStatus, successMsg, cancelReason) {
   try {
-    await actionFn(task.value.id)
+    await transitionTask(task.value.id, targetStatus, cancelReason)
     ElMessage.success(successMsg)
     await loadTask()
   } catch {
@@ -244,35 +237,35 @@ async function handleStatusAction(actionFn, successMsg) {
 }
 
 function handleStartTask() {
-  handleStatusAction(startTask, '任务已开始')
+  handleTransition(TASK_STATUS.IN_PROGRESS, '任务已开始')
 }
 
 function handleCompleteDev() {
-  handleStatusAction(completeDevTask, '开发已完成')
+  handleTransition(TASK_STATUS.IN_REVIEW, '开发已完成')
 }
 
 function handleReviewPass() {
-  handleStatusAction(reviewPassTask, '审查通过')
+  handleTransition(TASK_STATUS.IN_TEST, '审查通过')
 }
 
 function handleReviewReject() {
-  handleStatusAction(rejectReviewTask, '审查已驳回')
+  handleTransition(TASK_STATUS.IN_PROGRESS, '审查已驳回')
 }
 
 function handleTestPass() {
-  handleStatusAction(passTestTask, '测试通过')
+  handleTransition(TASK_STATUS.DONE, '测试通过')
 }
 
 function handleTestReject() {
-  handleStatusAction(rejectTestTask, '测试已驳回')
+  handleTransition(TASK_STATUS.IN_PROGRESS, '测试已驳回')
 }
 
 function handleCloseTask() {
-  handleStatusAction(closeTask, '任务已关闭')
+  handleTransition(TASK_STATUS.CLOSED, '任务已关闭')
 }
 
 function handleReopenTask() {
-  handleStatusAction(reopenTask, '任务已重新打开')
+  handleTransition(TASK_STATUS.TODO, '任务已重新打开')
 }
 
 async function loadTask() {

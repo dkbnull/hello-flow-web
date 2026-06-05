@@ -27,7 +27,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { updateCurrentUser } from '@/api/user'
 import { ElMessage } from 'element-plus'
@@ -63,7 +63,8 @@ async function handleSave() {
   }
 }
 
-onMounted(() => {
+onMounted(async () => {
+  await authStore.fetchCurrentUser()
   if (user.value) {
     form.value = {
       nickname: user.value.nickname || '',

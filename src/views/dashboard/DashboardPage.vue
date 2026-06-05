@@ -4,7 +4,7 @@
 
     <el-row :gutter="16" class="stat-cards">
       <el-col :span="6">
-        <div class="stat-card stat-pending" @click="$router.push('/my-tasks')">
+        <div class="stat-card stat-pending" @click="$router.push('/my-tasks?status=2')">
           <div class="stat-icon-wrap">
             <el-icon :size="22">
               <Clock />
@@ -17,7 +17,7 @@
         </div>
       </el-col>
       <el-col :span="6">
-        <div class="stat-card stat-review" @click="$router.push('/my-tasks?status=3')">
+        <div class="stat-card stat-review" @click="$router.push('/my-tasks?quickFilter=pending-review')">
           <div class="stat-icon-wrap">
             <el-icon :size="22">
               <EditPen />
@@ -132,7 +132,7 @@
 <script setup>
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { getMyTasks } from '@/api/task'
+import { getMyTasks, getPendingReviewTasks } from '@/api/task'
 import { getNotificationList } from '@/api/notification'
 import { getProjectList, getProjectStats } from '@/api/project'
 import { TASK_STATUS_MAP } from '@/utils/constants'
@@ -156,24 +156,25 @@ function goToTask(task) {
   router.push({ name: 'TaskDetailPage', params: { taskId: task.id } })
 }
 
-function computeStats(allTasks) {
-  stats.value.pendingTasks = allTasks.filter(t => t.status === 1).length
-  stats.value.reviewTasks = allTasks.filter(t => t.status === 3).length
+function computeStats(allTasks, reviewCount) {
+  stats.value.pendingTasks = allTasks.filter(t => t.status === 2).length
+  stats.value.reviewTasks = reviewCount
   stats.value.testTasks = allTasks.filter(t => t.status === 4).length
   stats.value.myBugs = allTasks.filter(t => t.type === 3 && t.status !== 5 && t.status !== 6 && t.status !== 7).length
 }
 
 onMounted(async () => {
   try {
-    const [tasksRes, allTasksRes, notifRes, projRes] = await Promise.all([
+    const [tasksRes, allTasksRes, reviewRes, notifRes, projRes] = await Promise.all([
       getMyTasks({ page: 1, pageSize: 10 }),
       getMyTasks({ page: 1, pageSize: 100 }),
+      getPendingReviewTasks({ page: 1, pageSize: 1 }),
       getNotificationList({ page: 1, pageSize: 10 }),
       getProjectList({ page: 1, pageSize: 50 })
     ])
 
     myTasks.value = tasksRes.data.records || []
-    computeStats(allTasksRes.data.records || [])
+    computeStats(allTasksRes.data.records || [], reviewRes.data.total || 0)
     notifications.value = notifRes.data.records || []
 
     const projects = projRes.data.records || []

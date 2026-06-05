@@ -162,7 +162,8 @@ async function handleSubmit() {
     if (props.parentTaskId) {
       await createSubtask(props.parentTaskId, data)
     } else {
-      await createTask(props.projectId, data)
+      data.projectId = props.projectId
+      await createTask(data)
     }
     ElMessage.success(props.parentTaskId ? '子任务创建成功' : '任务创建成功')
     visible.value = false

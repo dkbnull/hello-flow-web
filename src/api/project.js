@@ -37,20 +37,20 @@ export function removeProjectMember(projectId, userId) {
 
 // 项目概览统计
 export function getProjectStats(projectId) {
-  return request.get(`/projects/${projectId}/stats/overview`)
+  return request.get(`/stats/projects/${projectId}/overview`)
 }
 
 // 燃尽图数据
 export function getBurndownData(projectId, params) {
-  return request.get(`/projects/${projectId}/stats/burndown`, { params })
+  return request.get(`/stats/projects/${projectId}/burndown`, { params })
 }
 
 // 成员工作量统计
 export function getMemberStats(projectId) {
-  return request.get(`/projects/${projectId}/stats/members`)
+  return request.get(`/stats/projects/${projectId}/members`)
 }
 
 // 缺陷统计
 export function getDefectStats(projectId) {
-  return request.get(`/projects/${projectId}/stats/defects`)
+  return request.get(`/stats/projects/${projectId}/defects`)
 }

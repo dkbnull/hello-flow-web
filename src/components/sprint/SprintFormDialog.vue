@@ -80,7 +80,8 @@ async function handleSave() {
       await updateSprint(id, data)
       ElMessage.success('迭代更新成功')
     } else {
-      await createSprint(props.projectId, form.value)
+      const data = { ...form.value, projectId: props.projectId }
+      await createSprint(data)
       ElMessage.success('迭代创建成功')
     }
     visible.value = false

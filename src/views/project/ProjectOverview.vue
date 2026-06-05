@@ -131,9 +131,10 @@ onMounted(async () => {
 
     if (currentSprint.value) {
       // Sprint进度
-      const taskRes = await getTaskList(projectId, { sprintId: currentSprint.value.id, page: 1, pageSize: 1 })
+      const taskRes = await getTaskList({ projectId, sprintId: currentSprint.value.id, page: 1, pageSize: 1 })
       const sprintTotal = taskRes.data?.total || 0
-      const doneRes = await getTaskList(projectId, {
+      const doneRes = await getTaskList({
+        projectId,
         sprintId: currentSprint.value.id,
         status: 5,
         page: 1,
@@ -144,7 +145,7 @@ onMounted(async () => {
     }
 
     // 最近动态 - 获取最近更新的任务活动
-    const taskRes = await getTaskList(projectId, { pageSize: 5 })
+    const taskRes = await getTaskList({ projectId, pageSize: 5 })
     const recentTasks = taskRes.data?.records || []
     const allActivities = []
     for (const task of recentTasks.slice(0, 3)) {

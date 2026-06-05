@@ -1,13 +1,13 @@
 import request from '@/utils/request'
 
 // 任务列表
-export function getTaskList(projectId, params) {
-  return request.get(`/projects/${projectId}/tasks`, { params })
+export function getTaskList(params) {
+  return request.get('/tasks', { params })
 }
 
 // 创建任务
-export function createTask(projectId, data) {
-  return request.post(`/projects/${projectId}/tasks`, data)
+export function createTask(data) {
+  return request.post('/tasks', data)
 }
 
 // 任务详情
@@ -30,49 +30,11 @@ export function assignTask(id, assigneeId) {
   return request.post(`/tasks/${id}/assign`, { assigneeId })
 }
 
-// 开始开发
-export function startTask(id) {
-  return request.post(`/tasks/${id}/start`)
-}
-
-// 开发完成
-export function completeDevTask(id) {
-  return request.post(`/tasks/${id}/complete-dev`)
-}
-
-// 审查通过
-export function reviewPassTask(id) {
-  return request.post(`/tasks/${id}/review-pass`)
-}
-
-// 审查驳回
-export function rejectReviewTask(id) {
-  return request.post(`/tasks/${id}/review-reject`)
-}
-
-// 测试通过
-export function passTestTask(id) {
-  return request.post(`/tasks/${id}/test-pass`)
-}
-
-// 测试驳回
-export function rejectTestTask(id) {
-  return request.post(`/tasks/${id}/test-reject`)
-}
-
-// 重新打开
-export function reopenTask(id) {
-  return request.post(`/tasks/${id}/reopen`)
-}
-
-// 关闭任务
-export function closeTask(id) {
-  return request.post(`/tasks/${id}/close`)
-}
-
-// 取消任务
-export function cancelTask(id, cancelReason) {
-  return request.post(`/tasks/${id}/cancel`, { cancelReason })
+// 任务状态流转
+export function transitionTask(id, targetStatus, cancelReason) {
+  const data = { targetStatus }
+  if (cancelReason) data.cancelReason = cancelReason
+  return request.post(`/tasks/${id}/transition`, data)
 }
 
 // 标记延期
@@ -105,19 +67,14 @@ export function deleteTaskRelation(taskId, relationId) {
   return request.delete(`/tasks/${taskId}/relations/${relationId}`)
 }
 
-// 我的任务
+// 我负责的任务
 export function getMyTasks(params) {
   return request.get('/tasks/mine', { params })
 }
 
-// 我创建的任务
-export function getReportedTasks(params) {
-  return request.get('/tasks/reported', { params })
-}
-
-// 与我相关的任务
-export function getRelatedTasks(params) {
-  return request.get('/tasks/related', { params })
+// 待我审查的任务
+export function getPendingReviewTasks(params) {
+  return request.get('/tasks/pending-review', { params })
 }
 
 // 评论列表

@@ -75,9 +75,9 @@ async function searchTasks(query) {
   if (!props.projectId) return
   searching.value = true
   try {
-    const params = { pageSize: 20 }
+    const params = { projectId: props.projectId, pageSize: 20 }
     if (query) params.keyword = query
-    const res = await getTaskList(props.projectId, params)
+    const res = await getTaskList(params)
     const list = res.data?.records || res.data || []
     // 排除当前任务
     taskOptions.value = list.filter(t => t.id !== props.taskId)

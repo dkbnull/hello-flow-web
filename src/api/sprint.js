@@ -2,12 +2,12 @@ import request from '@/utils/request'
 
 // Sprint列表
 export function getSprintList(projectId) {
-  return request.get(`/projects/${projectId}/sprints`)
+  return request.get('/sprints', { params: { projectId } })
 }
 
 // 创建Sprint
-export function createSprint(projectId, data) {
-  return request.post(`/projects/${projectId}/sprints`, data)
+export function createSprint(data) {
+  return request.post('/sprints', data)
 }
 
 // 更新Sprint

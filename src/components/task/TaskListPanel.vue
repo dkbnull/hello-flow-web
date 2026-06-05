@@ -5,10 +5,13 @@
         <el-button :type="quickFilter === 'mine' ? 'primary' : ''" size="default" @click="toggleQuickFilter('mine')">
           分配给我
         </el-button>
+        <el-button :type="quickFilter === 'pending-review' ? 'primary' : ''" size="default"
+                   @click="toggleQuickFilter('pending-review')">待我审查
+        </el-button>
         <el-button :type="quickFilter === 'reported' ? 'primary' : ''" size="default"
                    @click="toggleQuickFilter('reported')">我创建的
         </el-button>
-        <el-button v-if="mode === 'project'" :type="quickFilter === 'delayed' ? 'primary' : ''" size="default"
+        <el-button :type="quickFilter === 'delayed' ? 'primary' : ''" size="default"
                    @click="toggleQuickFilter('delayed')">已延期
         </el-button>
         <el-divider direction="vertical" />
@@ -80,7 +83,7 @@
 <script setup>
 import { computed, inject, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { getMyTasks, getRelatedTasks, getReportedTasks, getTaskList } from '@/api/task'
+import { getMyTasks, getPendingReviewTasks, getTaskList } from '@/api/task'
 import { getProjectMembers } from '@/api/project'
 import { getSprintList } from '@/api/sprint'
 import { TASK_PRIORITY_MAP, TASK_STATUS_MAP, TASK_TYPE_MAP } from '@/utils/constants'
@@ -106,7 +109,7 @@ const taskRefreshKey = inject('taskRefreshKey', ref(0))
 const tasks = ref([])
 const total = ref(0)
 const currentPage = ref(1)
-const pageSize = 20
+const pageSize = 10
 const quickFilter = ref('')
 const activeFilterId = ref(null)
 const showSaveDialog = ref(false)
@@ -279,7 +282,23 @@ async function loadProjectTasks() {
   const projectId = route.params.id
   if (!projectId) return
 
+  // 待我审查使用专用接口
+  if (quickFilter.value === 'pending-review') {
+    try {
+      const params = { page: currentPage.value, pageSize }
+      const res = await getPendingReviewTasks(params)
+      const records = res.data.records || []
+      // 过滤当前项目的任务
+      tasks.value = records.filter(t => String(t.projectId) === String(projectId))
+      total.value = tasks.value.length
+    } catch {
+      // 错误已在拦截器中处理
+    }
+    return
+  }
+
   const params = {
+    projectId,
     page: currentPage.value,
     pageSize,
     keyword: filters.keyword || undefined,
@@ -301,7 +320,7 @@ async function loadProjectTasks() {
   if (filters.priority) params.priority = filters.priority
 
   try {
-    const res = await getTaskList(projectId, params)
+    const res = await getTaskList(params)
     const records = res.data.records || []
     if (members.value.length > 0) {
       const memberMap = new Map(members.value.map(m => [m.userId, m.nickname || m.username]))
@@ -321,7 +340,6 @@ async function loadProjectTasks() {
 async function loadMyTasks() {
   try {
     const params = { page: currentPage.value, pageSize }
-    if (filters.keyword) params.keyword = filters.keyword
     if (filters.status) params.status = filters.status
     if (filters.type) params.type = filters.type
     if (filters.priority) params.priority = filters.priority
@@ -329,12 +347,16 @@ async function loadMyTasks() {
     if (route.query.type) params.type = Number(route.query.type)
 
     let apiFn
-    if (quickFilter.value === 'reported') {
-      apiFn = getReportedTasks
-    } else if (quickFilter.value === 'mine') {
+    if (quickFilter.value === 'pending-review') {
+      apiFn = getPendingReviewTasks
+    } else if (quickFilter.value === 'reported') {
+      apiFn = getTaskList
+      params.reporterId = authStore.user?.id
+    } else if (quickFilter.value === 'delayed') {
       apiFn = getMyTasks
+      params.isDelayed = 1
     } else {
-      apiFn = getRelatedTasks
+      apiFn = getMyTasks
     }
 
     const res = await apiFn(params)
@@ -367,8 +389,12 @@ async function loadSprints() {
 
 onMounted(async () => {
   if (props.mode === 'my') {
-    if (route.query.status) filters.status = Number(route.query.status)
-    if (route.query.type) filters.type = Number(route.query.type)
+    if (route.query.quickFilter) {
+      quickFilter.value = route.query.quickFilter
+    } else {
+      if (route.query.status) filters.status = Number(route.query.status)
+      if (route.query.type) filters.type = Number(route.query.type)
+    }
     if (route.query.keyword) filters.keyword = route.query.keyword
   }
   await loadMembers()

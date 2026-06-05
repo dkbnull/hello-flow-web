@@ -22,10 +22,10 @@ export function markAllAsRead() {
 
 // 获取通知设置
 export function getNotificationSettings() {
-  return request.get('/notification-settings')
+  return request.get('/notifications/settings')
 }
 
 // 更新通知设置
 export function updateNotificationSettings(data) {
-  return request.put('/notification-settings', data)
+  return request.put('/notifications/settings', data)
 }
