@@ -25,7 +25,7 @@
           </div>
           <div class="stat-info">
             <div class="stat-value">{{ stats.reviewTasks }}</div>
-            <div class="stat-label">待我评审</div>
+            <div class="stat-label">待我审查</div>
           </div>
         </div>
       </el-col>

@@ -252,11 +252,11 @@ function handleCompleteDev() {
 }
 
 function handleReviewPass() {
-  handleStatusAction(reviewPassTask, '评审通过')
+  handleStatusAction(reviewPassTask, '审查通过')
 }
 
 function handleReviewReject() {
-  handleStatusAction(rejectReviewTask, '评审已驳回')
+  handleStatusAction(rejectReviewTask, '审查已驳回')
 }
 
 function handleTestPass() {

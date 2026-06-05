@@ -40,12 +40,12 @@ export function completeDevTask(id) {
   return request.post(`/tasks/${id}/complete-dev`)
 }
 
-// 评审通过
+// 审查通过
 export function reviewPassTask(id) {
   return request.post(`/tasks/${id}/review-pass`)
 }
 
-// 评审驳回
+// 审查驳回
 export function rejectReviewTask(id) {
   return request.post(`/tasks/${id}/review-reject`)
 }
