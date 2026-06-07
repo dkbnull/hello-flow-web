@@ -77,7 +77,8 @@ const props = defineProps({
   projectId: { type: [String, Number], required: true },
   devLeadId: { type: [String, Number], default: null },
   testLeadId: { type: [String, Number], default: null },
-  parentTaskId: { type: Number, default: null }
+  parentTaskId: { type: Number, default: null },
+  parentTask: { type: Object, default: null }
 })
 
 const emit = defineEmits(['update:modelValue', 'created'])
@@ -131,8 +132,13 @@ watch(visible, (val) => {
 
 function resetForm() {
   form.value = getDefaultForm()
-  form.value.developerId = props.devLeadId || null
-  form.value.testerId = props.testLeadId || null
+  if (props.parentTaskId && props.parentTask) {
+    form.value.developerId = props.parentTask.developerId || null
+    form.value.testerId = props.parentTask.testerId || null
+  } else {
+    form.value.developerId = props.devLeadId || null
+    form.value.testerId = props.testLeadId || null
+  }
 }
 
 async function loadOptions() {
@@ -158,11 +164,10 @@ async function handleSubmit() {
 
   submitting.value = true
   try {
-    const data = { ...form.value }
+    const data = { ...form.value, projectId: props.projectId }
     if (props.parentTaskId) {
       await createSubtask(props.parentTaskId, data)
     } else {
-      data.projectId = props.projectId
       await createTask(data)
     }
     ElMessage.success(props.parentTaskId ? '子任务创建成功' : '任务创建成功')

@@ -52,6 +52,7 @@
       v-model="showAddSubtask"
       :project-id="task?.projectId"
       :parent-task-id="task?.id"
+      :parent-task="task"
       @created="onSubtaskCreated"
     />
     <!-- 添加关联任务弹窗 -->
