@@ -9,12 +9,6 @@ const routes = [
     meta: { guest: true, title: '登录' }
   },
   {
-    path: '/tasks/:taskId',
-    name: 'TaskDetailPage',
-    component: () => import('@/views/task/TaskDetailPage.vue'),
-    meta: { requiresAuth: true, title: '任务详情' }
-  },
-  {
     path: '/',
     component: () => import('@/components/layout/MainLayout.vue'),
     meta: { requiresAuth: true },
@@ -43,6 +37,7 @@ const routes = [
         children: [
           {
             path: '',
+            name: 'ProjectDetailIndex',
             redirect: (to) => ({ name: 'ProjectOverview', params: to.params })
           },
           {
@@ -82,6 +77,18 @@ const routes = [
             meta: { title: '项目成员' }
           },
           {
+            path: 'modules',
+            name: 'ProjectModules',
+            component: () => import('@/views/project/ProjectModules.vue'),
+            meta: { title: '模块管理' }
+          },
+          {
+            path: 'versions',
+            name: 'ProjectVersions',
+            component: () => import('@/views/project/ProjectVersions.vue'),
+            meta: { title: '版本管理' }
+          },
+          {
             path: 'settings',
             name: 'ProjectSettings',
             component: () => import('@/views/project/ProjectSettings.vue'),
@@ -94,6 +101,12 @@ const routes = [
         name: 'MyTasks',
         component: () => import('@/views/task/MyTasks.vue'),
         meta: { title: '我的任务' }
+      },
+      {
+        path: 'tasks/:taskId',
+        name: 'TaskDetailPage',
+        component: () => import('@/views/task/TaskDetailPage.vue'),
+        meta: { title: '任务详情' }
       },
       {
         path: 'notifications',
@@ -109,6 +122,7 @@ const routes = [
         children: [
           {
             path: '',
+            name: 'ProfileIndex',
             redirect: '/profile/info'
           },
           {
@@ -133,6 +147,7 @@ const routes = [
         children: [
           {
             path: '',
+            name: 'AdminIndex',
             redirect: '/admin/users'
           },
           {
@@ -179,28 +194,26 @@ const router = createRouter({
   }
 })
 
-router.beforeEach(async (to, from, next) => {
+router.beforeEach(async (to) => {
   const authStore = useAuthStore()
 
   document.title = to.meta.title ? `${to.meta.title} - HelloFlow` : 'HelloFlow'
 
   if (to.meta.requiresAuth && !authStore.isLoggedIn) {
-    return next({ name: 'Login', query: { redirect: to.fullPath } })
+    return { name: 'Login', query: { redirect: to.fullPath } }
   }
 
   if (to.meta.guest && authStore.isLoggedIn) {
-    return next({ name: 'Dashboard' })
+    return { name: 'Dashboard' }
   }
 
   if (to.meta.requiresAdmin && !authStore.isAdmin) {
-    return next({ name: 'Forbidden' })
+    return { name: 'Forbidden' }
   }
 
   if (authStore.isLoggedIn && !authStore.user && !authStore.userLoading) {
     await authStore.fetchCurrentUser()
   }
-
-  next()
 })
 
 export default router

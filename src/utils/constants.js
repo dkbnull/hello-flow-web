@@ -103,6 +103,72 @@ export const PROJECT_STATUS_MAP = {
   [PROJECT_STATUS.ACTIVE]: { label: '进行中', tagType: '' }
 }
 
+// 缺陷类型
+export const DEFECT_TYPE = {
+  FUNCTIONAL: 1,
+  UI: 2,
+  PERFORMANCE: 3,
+  SECURITY: 4,
+  COMPATIBILITY: 5,
+  OTHER: 6
+}
+
+export const DEFECT_TYPE_MAP = {
+  [DEFECT_TYPE.FUNCTIONAL]: { label: '功能缺陷', tagType: 'danger' },
+  [DEFECT_TYPE.UI]: { label: '界面缺陷', tagType: 'warning' },
+  [DEFECT_TYPE.PERFORMANCE]: { label: '性能缺陷', tagType: 'warning' },
+  [DEFECT_TYPE.SECURITY]: { label: '安全缺陷', tagType: 'danger' },
+  [DEFECT_TYPE.COMPATIBILITY]: { label: '兼容性缺陷', tagType: 'warning' },
+  [DEFECT_TYPE.OTHER]: { label: '其他', tagType: 'info' }
+}
+
+// 复现概率
+export const REPRODUCTION_PROBABILITY = {
+  ALWAYS: 1,
+  HIGH: 2,
+  OCCASIONAL: 3,
+  RARE: 4,
+  NONE: 5
+}
+
+export const REPRODUCTION_PROBABILITY_MAP = {
+  [REPRODUCTION_PROBABILITY.ALWAYS]: { label: '必现', color: '#F56C6C' },
+  [REPRODUCTION_PROBABILITY.HIGH]: { label: '高概率', color: '#E6A23C' },
+  [REPRODUCTION_PROBABILITY.OCCASIONAL]: { label: '偶发', color: '#409EFF' },
+  [REPRODUCTION_PROBABILITY.RARE]: { label: '难以复现', color: '#909399' },
+  [REPRODUCTION_PROBABILITY.NONE]: { label: '无法复现', color: '#909399' }
+}
+
+// 缺陷解决原因
+export const RESOLVE_REASON = {
+  FIXED: 1,
+  WONT_FIX: 2,
+  POSTPONE: 3,
+  DUPLICATE: 4,
+  CANNOT_REPRODUCE: 5
+}
+
+export const RESOLVE_REASON_MAP = {
+  [RESOLVE_REASON.FIXED]: { label: '已修复', tagType: 'success' },
+  [RESOLVE_REASON.WONT_FIX]: { label: '不予解决', tagType: 'info' },
+  [RESOLVE_REASON.POSTPONE]: { label: '延期修复', tagType: 'warning' },
+  [RESOLVE_REASON.DUPLICATE]: { label: '重复缺陷', tagType: 'info' },
+  [RESOLVE_REASON.CANNOT_REPRODUCE]: { label: '无法重现', tagType: 'info' }
+}
+
+// 项目版本状态
+export const VERSION_STATUS = {
+  PLANNED: 1,
+  RELEASED: 2,
+  ARCHIVED: 3
+}
+
+export const VERSION_STATUS_MAP = {
+  [VERSION_STATUS.PLANNED]: { label: '计划中', tagType: 'info' },
+  [VERSION_STATUS.RELEASED]: { label: '已发布', tagType: 'success' },
+  [VERSION_STATUS.ARCHIVED]: { label: '已归档', tagType: 'info' }
+}
+
 // 职位编码
 export const POSITION_CODE = {
   PM: 'PM',

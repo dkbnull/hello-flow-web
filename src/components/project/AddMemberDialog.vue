@@ -16,7 +16,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { addProjectMember } from '@/api/project'
 import { ElMessage } from 'element-plus'
 
@@ -39,7 +39,7 @@ const adding = ref(false)
 
 const availableUsers = computed(() => {
   const memberIds = props.members.map(m => m.userId)
-  return props.allUsers.filter(u => !memberIds.includes(u.id))
+  return props.allUsers.filter(u => !memberIds.includes(u.id) && !u.roles?.includes('ADMIN'))
 })
 
 watch(() => props.modelValue, (val) => {

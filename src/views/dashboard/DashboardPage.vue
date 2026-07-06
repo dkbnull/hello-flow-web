@@ -74,7 +74,7 @@
             @click="goToTask(task)"
           >
             <div class="task-left">
-              <el-tag :type="TASK_STATUS_MAP[task.status]?.tagType ?? 'info'" size="small" effect="light">
+              <el-tag :type="TASK_STATUS_MAP[task.status]?.tagType || 'info'" size="small" effect="light">
                 {{ TASK_STATUS_MAP[task.status]?.label || '未知' }}
               </el-tag>
               <span class="task-id">{{ task.projectCode || 'TASK' }}-{{ task.id }}</span>
@@ -130,7 +130,7 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue'
+import { inject, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { getMyTasks, getPendingReviewTasks } from '@/api/task'
 import { getNotificationList } from '@/api/notification'
@@ -141,6 +141,9 @@ import { CircleCheck, Clock, EditPen, WarningFilled } from '@element-plus/icons-
 
 const router = useRouter()
 const { formatRelativeTime } = useDateFormat()
+
+// 监听全局刷新信号（header 新建任务后递增）
+const issueRefreshKey = inject('issueRefreshKey', ref(0))
 
 const stats = ref({
   pendingTasks: 0,
@@ -163,7 +166,7 @@ function computeStats(allTasks, reviewCount) {
   stats.value.myBugs = allTasks.filter(t => t.type === 3 && t.status !== 5 && t.status !== 6 && t.status !== 7).length
 }
 
-onMounted(async () => {
+async function loadDashboardData() {
   try {
     const [tasksRes, allTasksRes, reviewRes, notifRes, projRes] = await Promise.all([
       getMyTasks({ page: 1, pageSize: 10 }),
@@ -200,6 +203,14 @@ onMounted(async () => {
   } catch {
     // 错误已在拦截器中处理
   }
+}
+
+onMounted(async () => {
+  await loadDashboardData()
+})
+
+watch(issueRefreshKey, () => {
+  loadDashboardData()
 })
 </script>
 

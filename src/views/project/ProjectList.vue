@@ -27,7 +27,7 @@
               </el-icon>
             </div>
             <span class="project-name">{{ project.name }}</span>
-            <el-tag :type="PROJECT_STATUS_MAP[project.status]?.tagType ?? 'info'" size="small" effect="light">
+            <el-tag :type="PROJECT_STATUS_MAP[project.status]?.tagType || 'info'" size="small" effect="light">
               {{ PROJECT_STATUS_MAP[project.status]?.label || '未知' }}
             </el-tag>
           </div>
@@ -64,7 +64,7 @@ import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { getProjectList, getProjectMembers, getProjectStats } from '@/api/project'
 import { PROJECT_STATUS_MAP } from '@/utils/constants'
-import { SortDown, SortUp } from '@element-plus/icons-vue'
+import { Folder, SortDown, SortUp } from '@element-plus/icons-vue'
 import PageHeader from '@/components/common/PageHeader.vue'
 
 const router = useRouter()

@@ -1,7 +1,7 @@
 <template>
   <div class="task-card" :class="[`task-card--${size}`]" @click="$emit('click')">
     <div class="card-header">
-      <el-tag :type="TASK_TYPE_MAP[task.type]?.tagType ?? 'info'" :size="tagSize">
+      <el-tag :type="TASK_TYPE_MAP[task.type]?.tagType || 'info'" :size="tagSize">
         {{ TASK_TYPE_MAP[task.type]?.label }}
       </el-tag>
       <span class="task-id">{{ projectCode }}-{{ task.id }}</span>
@@ -20,7 +20,7 @@
 
 <script setup>
 import { computed } from 'vue'
-import { TASK_TYPE_MAP, TASK_PRIORITY_MAP } from '@/utils/constants'
+import { TASK_PRIORITY_MAP, TASK_TYPE_MAP } from '@/utils/constants'
 
 const props = defineProps({
   task: { type: Object, required: true },

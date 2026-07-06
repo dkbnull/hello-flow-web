@@ -32,6 +32,10 @@ request.interceptors.request.use(
 
 request.interceptors.response.use(
   (response) => {
+    // blob 响应（文件下载/预览）直接返回，不走 code 校验
+    if (response.config.responseType === 'blob') {
+      return response.data
+    }
     const res = response.data
     if (res.code !== 0) {
       const message = res.message || '请求失败'

@@ -1,26 +1,29 @@
 <template>
-  <SectionCard title="操作历史" :icon="Clock">
-    <template #header-extra>
-      <el-button v-if="activities.length > 1" link type="primary" size="small" @click="expanded = !expanded">
-        {{ expanded ? '收起' : `查看全部 (${activities.length})` }}
-      </el-button>
-    </template>
-    <div v-if="activities.length > 0" class="history-list" :class="{ 'history-expanded': expanded }">
-      <el-timeline>
-        <el-timeline-item v-for="act in displayedActivities" :key="act.id" :timestamp="act.createdAt" placement="top">
-          {{ act.username }} {{ act.action }}
-          <span v-if="act.description" class="history-desc">{{ act.description }}</span>
-        </el-timeline-item>
-      </el-timeline>
+  <div class="detail-section">
+    <div class="section-title">
+      <span>操作历史</span>
+      <div class="section-title-actions">
+        <el-button v-if="activities.length > 1" link type="primary" size="small" @click="expanded = !expanded">
+          {{ expanded ? '收起' : `查看全部 (${activities.length})` }}
+        </el-button>
+      </div>
     </div>
-    <div v-else class="hf-empty-text">暂无操作记录</div>
-  </SectionCard>
+    <div class="section-body">
+      <div v-if="activities.length > 0" class="history-list" :class="{ 'history-expanded': expanded }">
+        <el-timeline>
+          <el-timeline-item v-for="act in displayedActivities" :key="act.id" :timestamp="act.createdAt" placement="top">
+            {{ act.username }} {{ act.action }}
+            <span v-if="act.description" class="history-desc">{{ act.description }}</span>
+          </el-timeline-item>
+        </el-timeline>
+      </div>
+      <div v-else class="hf-empty-text">暂无操作记录</div>
+    </div>
+  </div>
 </template>
 
 <script setup>
 import { computed, ref } from 'vue'
-import { Clock } from '@element-plus/icons-vue'
-import SectionCard from '@/components/common/SectionCard.vue'
 
 const props = defineProps({
   activities: { type: Array, default: () => [] }
@@ -35,6 +38,30 @@ const displayedActivities = computed(() => {
 </script>
 
 <style scoped>
+.detail-section {
+  padding: 0;
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--hf-text-primary);
+}
+
+.section-title-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.section-body {
+  padding-bottom: 12px;
+}
+
 .history-list {
   max-height: 120px;
   overflow: hidden;

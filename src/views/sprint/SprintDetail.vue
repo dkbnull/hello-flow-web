@@ -4,7 +4,7 @@
       <el-page-header @back="$router.push({ name: 'ProjectSprints' })">
         <template #content>
           <span>{{ sprint.name }}</span>
-          <el-tag :type="SPRINT_STATUS_MAP[sprint.status]?.tagType ?? 'info'" size="small" style="margin-left: 8px">
+          <el-tag :type="SPRINT_STATUS_MAP[sprint.status]?.tagType || 'info'" size="small" style="margin-left: 8px">
             {{ SPRINT_STATUS_MAP[sprint.status]?.label || '未知' }}
           </el-tag>
         </template>
@@ -25,7 +25,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { getSprintList } from '@/api/sprint'
 import { SPRINT_STATUS_MAP } from '@/utils/constants'

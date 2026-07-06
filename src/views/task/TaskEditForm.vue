@@ -5,7 +5,7 @@
         <el-input v-model="form.title" maxlength="200" />
       </el-form-item>
       <el-form-item label="描述">
-        <el-input v-model="form.description" type="textarea" :rows="6" />
+        <MarkdownEditor v-model="form.description" />
       </el-form-item>
       <el-form-item label="类型">
         <el-select v-model="form.type">
@@ -31,8 +31,9 @@
 
 <script setup>
 import { Edit } from '@element-plus/icons-vue'
-import { TASK_TYPE_MAP, TASK_PRIORITY_MAP } from '@/utils/constants'
+import { TASK_PRIORITY_MAP, TASK_TYPE_MAP } from '@/utils/constants'
 import SectionCard from '@/components/common/SectionCard.vue'
+import MarkdownEditor from '@/components/common/MarkdownEditor.vue'
 
 defineProps({
   form: { type: Object, required: true },

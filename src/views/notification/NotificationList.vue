@@ -3,7 +3,7 @@
     <PageHeader title="通知中心">
       <template #actions>
         <el-radio-group v-model="readFilter" size="default" @change="handleFilterChange">
-          <el-radio-button :value="null">全部</el-radio-button>
+          <el-radio-button value="">全部</el-radio-button>
           <el-radio-button :value="0">未读</el-radio-button>
           <el-radio-button :value="1">已读</el-radio-button>
         </el-radio-group>
@@ -57,7 +57,7 @@ const notifications = ref([])
 const total = ref(0)
 const currentPage = ref(1)
 const pageSize = 20
-const readFilter = ref(null)
+const readFilter = ref('')
 
 function getNotifTagType(type) {
   const map = { 1: '', 2: 'warning', 3: 'danger', 4: 'success', 5: 'primary' }
@@ -67,7 +67,7 @@ function getNotifTagType(type) {
 async function loadNotifications() {
   try {
     const params = { page: currentPage.value, pageSize }
-    if (readFilter.value !== null) {
+    if (readFilter.value !== '') {
       params.isRead = readFilter.value
     }
     const res = await getNotificationList(params)

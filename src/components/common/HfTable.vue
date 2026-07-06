@@ -212,8 +212,8 @@ function handleSizeChange(size) {
 
 // 根据 statusMap 获取状态标签类型
 function getStatusTagType(value, statusMap) {
-  if (!statusMap) return ''
-  return statusMap[value]?.tagType ?? ''
+  if (!statusMap) return 'info'
+  return statusMap[value]?.tagType || 'info'
 }
 
 // 根据 statusMap 获取状态标签文本

@@ -35,6 +35,10 @@
       </template>
     </SearchBar>
 
+    <div class="list-toolbar">
+      <el-button :icon="Setting" size="default" @click="showColumnSetting = true">列设置</el-button>
+    </div>
+
     <HfTable
       :columns="columns"
       :data="tasks"
@@ -48,7 +52,7 @@
         {{ row.projectCode || projectCode || 'TASK' }}-{{ row.id }}
       </template>
       <template #type="{ row }">
-        <el-tag :type="TASK_TYPE_MAP[row.type]?.tagType ?? 'info'" size="default">
+        <el-tag :type="TASK_TYPE_MAP[row.type]?.tagType || 'info'" size="default">
           {{ TASK_TYPE_MAP[row.type]?.label || '未知' }}
         </el-tag>
       </template>
@@ -58,7 +62,7 @@
         </span>
       </template>
       <template #status="{ row }">
-        <el-tag :type="TASK_STATUS_MAP[row.status]?.tagType ?? 'info'" size="default">
+        <el-tag :type="TASK_STATUS_MAP[row.status]?.tagType || 'info'" size="default">
           {{ TASK_STATUS_MAP[row.status]?.label || '未知' }}
         </el-tag>
       </template>
@@ -77,6 +81,14 @@
       v-model="showSaveDialog"
       @save="handleSaveFilter"
     />
+
+    <ColumnSetting
+      v-model="showColumnSetting"
+      :columns="allColumns"
+      :selected="selectedColumnProps"
+      :default-columns="DEFAULT_COLUMNS"
+      @confirm="handleColumnConfirm"
+    />
   </div>
 </template>
 
@@ -84,16 +96,18 @@
 import { computed, inject, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getMyTasks, getPendingReviewTasks, getTaskList } from '@/api/task'
-import { getProjectMembers } from '@/api/project'
+import { getProjectList, getProjectMembers } from '@/api/project'
 import { getSprintList } from '@/api/sprint'
+import { getViewConfig, updateViewConfig } from '@/api/viewConfig'
 import { TASK_PRIORITY_MAP, TASK_STATUS_MAP, TASK_TYPE_MAP } from '@/utils/constants'
 import { useAuthStore } from '@/stores/auth'
 import { useProjectStore } from '@/stores/project'
 import { useFilterStore } from '@/stores/filter'
-import { Plus } from '@element-plus/icons-vue'
+import { Plus, Setting } from '@element-plus/icons-vue'
 import SearchBar from '@/components/common/SearchBar.vue'
 import HfTable from '@/components/common/HfTable.vue'
 import SaveFilterDialog from '@/components/task/SaveFilterDialog.vue'
+import ColumnSetting from '@/components/common/ColumnSetting.vue'
 
 const props = defineProps({
   mode: { type: String, default: 'project', validator: v => ['project', 'my'].includes(v) }
@@ -105,6 +119,8 @@ const authStore = useAuthStore()
 const projectStore = useProjectStore()
 const filterStore = useFilterStore()
 const taskRefreshKey = inject('taskRefreshKey', ref(0))
+// 全局新建问题后的刷新信号（由 MainLayout 提供）
+const issueRefreshKey = inject('issueRefreshKey', ref(0))
 
 const tasks = ref([])
 const total = ref(0)
@@ -154,11 +170,9 @@ const searchOptions = computed(() => {
   return options
 })
 
-// 表格列配置
-const columns = computed(() => {
-  const cols = [
-    { prop: 'id', label: '编码', width: 110, slot: 'code' }
-  ]
+// 所有可选列定义（用于列设置勾选）
+const allColumns = computed(() => {
+  const cols = [{ prop: 'taskCode', label: '编码', width: 110, slot: 'code' }]
   if (props.mode === 'my') {
     cols.push({ prop: 'projectName', label: '项目', width: 120, showOverflowTooltip: true })
   }
@@ -167,12 +181,43 @@ const columns = computed(() => {
     { prop: 'type', label: '类型', width: 80, slot: 'type' },
     { prop: 'priority', label: '优先级', width: 80, slot: 'priority' },
     { prop: 'status', label: '状态', width: 90, slot: 'status' },
+    { prop: 'assigneeName', label: '负责人', minWidth: 110 },
     { prop: 'developerName', label: '开发工程师', minWidth: 110, slot: 'developerName' },
     { prop: 'testerName', label: '测试工程师', minWidth: 110, slot: 'testerName' },
-    { prop: 'dueDate', label: '到期日', minWidth: 110, slot: 'dueDate' }
+    { prop: 'dueDate', label: '到期日', minWidth: 110, slot: 'dueDate' },
+    { prop: 'moduleName', label: '模块', minWidth: 110 }
   )
   return cols
 })
+
+// 默认显示列（my 模式下包含项目列）
+const DEFAULT_COLUMNS = computed(() => {
+  const cols = ['taskCode', 'title', 'type', 'status', 'priority', 'assigneeName', 'dueDate', 'moduleName']
+  if (props.mode === 'my') {
+    cols.splice(1, 0, 'projectName')
+  }
+  return cols
+})
+
+// 当前已选中的列 prop 数组（初始为默认值，onMounted 后从后端加载覆盖）
+const selectedColumnProps = ref([...DEFAULT_COLUMNS.value])
+const showColumnSetting = ref(false)
+
+// 实际渲染的列：根据选中项过滤
+const columns = computed(() => {
+  return allColumns.value.filter(c => selectedColumnProps.value.includes(c.prop))
+})
+
+// 列设置确认：更新本地选中项并持久化到后端
+async function handleColumnConfirm(selectedProps) {
+  selectedColumnProps.value = selectedProps
+  showColumnSetting.value = false
+  try {
+    await updateViewConfig({ columns: selectedProps })
+  } catch {
+    // 持久化失败不影响本地使用
+  }
+}
 
 const savedFilters = computed(() => {
   if (props.mode === 'project') {
@@ -360,10 +405,31 @@ async function loadMyTasks() {
     }
 
     const res = await apiFn(params)
-    tasks.value = res.data.records || []
+    const records = res.data.records || []
+    // 补充项目名称（API 未返回 projectName，需从项目列表映射）
+    if (records.length && !records[0].projectName) {
+      await enrichProjectNames(records)
+    }
+    tasks.value = records
     total.value = res.data.total || 0
   } catch {
     // 错误已在拦截器中处理
+  }
+}
+
+// 从项目列表构建 ID→名称映射，补充任务的 projectName
+async function enrichProjectNames(records) {
+  try {
+    const projRes = await getProjectList({ pageSize: 200 })
+    const projects = projRes.data.records || projRes.data || []
+    const projMap = new Map(projects.map(p => [p.id, p.name]))
+    for (const task of records) {
+      if (!task.projectName && task.projectId) {
+        task.projectName = projMap.get(task.projectId) || ''
+      }
+    }
+  } catch {
+    // 忽略，项目名称留空
   }
 }
 
@@ -387,6 +453,17 @@ async function loadSprints() {
   }
 }
 
+async function loadViewConfig() {
+  try {
+    const res = await getViewConfig()
+    if (res.data?.columns?.length) {
+      selectedColumnProps.value = res.data.columns
+    }
+  } catch {
+    // 加载失败使用默认列
+  }
+}
+
 onMounted(async () => {
   if (props.mode === 'my') {
     if (route.query.quickFilter) {
@@ -398,12 +475,17 @@ onMounted(async () => {
     if (route.query.keyword) filters.keyword = route.query.keyword
   }
   await loadMembers()
+  loadViewConfig()
   loadTasks()
   loadSprints()
   filterStore.fetchFilters()
 })
 
 watch(taskRefreshKey, () => {
+  loadTasks()
+})
+
+watch(issueRefreshKey, () => {
   loadTasks()
 })
 
@@ -430,5 +512,11 @@ watch(() => route.query.keyword, (newKeyword) => {
 
 .task-list-panel :deep(.el-table__row) {
   cursor: pointer;
+}
+
+.list-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 12px;
 }
 </style>

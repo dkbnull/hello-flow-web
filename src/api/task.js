@@ -30,10 +30,9 @@ export function assignTask(id, assigneeId) {
   return request.post(`/tasks/${id}/assign`, { assigneeId })
 }
 
-// 任务状态流转
-export function transitionTask(id, targetStatus, cancelReason) {
-  const data = { targetStatus }
-  if (cancelReason) data.cancelReason = cancelReason
+// 任务状态流转（含缺陷解决信息）
+export function transitionTask(id, targetStatus, extra = {}) {
+  const data = { targetStatus, ...extra }
   return request.post(`/tasks/${id}/transition`, data)
 }
 

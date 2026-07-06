@@ -68,6 +68,8 @@
             class="search-input"
             @keyup.enter="handleSearch"
           />
+          <el-button type="primary" class="create-btn" :icon="Plus" @click="showCreateDialog = true">新建任务
+          </el-button>
         </div>
         <div class="header-right">
           <el-badge :value="unreadCount" :hidden="unreadCount === 0" :max="99" class="notification-badge">
@@ -97,15 +99,22 @@
         <router-view />
       </el-main>
     </el-container>
+
+    <CreateTaskDialog
+      v-model="showCreateDialog"
+      :project-id="defaultProjectId"
+      @created="handleIssueCreated"
+    />
   </el-container>
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, provide, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useNotificationStore } from '@/stores/notification'
-import { Bell, Expand, Fold, Folder, List, Monitor, Search, Setting } from '@element-plus/icons-vue'
+import CreateTaskDialog from '@/components/task/CreateTaskDialog.vue'
+import { Bell, Expand, Fold, Folder, List, Monitor, Plus, Search, Setting } from '@element-plus/icons-vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -114,15 +123,24 @@ const notificationStore = useNotificationStore()
 
 const isCollapsed = ref(false)
 const searchKeyword = ref('')
+const showCreateDialog = ref(false)
+// 全局问题刷新信号：新建问题后递增，列表组件监听后刷新
+const issueRefreshKey = ref(0)
 
 const user = computed(() => authStore.user)
 const isAdmin = computed(() => authStore.isAdmin)
 const unreadCount = computed(() => notificationStore.unreadCount)
 
+// 当前项目 ID（处于项目详情页时，作为新建问题的默认项目）
+const defaultProjectId = computed(() => route.params.id || null)
+
 const activeMenu = computed(() => {
   const path = route.path
   if (path.startsWith('/projects/')) {
     return '/projects'
+  }
+  if (path.startsWith('/tasks/')) {
+    return '/my-tasks'
   }
   return path
 })
@@ -132,6 +150,13 @@ function handleSearch() {
     router.push({ path: '/my-tasks', query: { keyword: searchKeyword.value.trim() } })
   }
 }
+
+function handleIssueCreated() {
+  issueRefreshKey.value++
+}
+
+// 暴露全局刷新信号，供任务列表组件注入监听
+provide('issueRefreshKey', issueRefreshKey)
 
 async function handleUserCommand(command) {
   if (command === 'profile') {
@@ -264,6 +289,7 @@ onMounted(async () => {
 .header-left {
   display: flex;
   align-items: center;
+  gap: 12px;
 }
 
 .collapse-btn {
@@ -277,14 +303,21 @@ onMounted(async () => {
   color: var(--hf-text-primary);
 }
 
+.create-btn {
+  font-weight: 500;
+}
+
 .header-center {
   flex: 1;
-  max-width: 420px;
+  max-width: 460px;
   margin: 0 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .search-input {
-  width: 100%;
+  flex: 1;
 }
 
 .search-input :deep(.el-input__wrapper) {

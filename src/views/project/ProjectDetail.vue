@@ -2,15 +2,9 @@
   <div class="project-detail">
     <div class="project-header">
       <h2 class="project-name">{{ project?.name || '加载中...' }}</h2>
-      <el-tag v-if="project" :type="PROJECT_STATUS_MAP[project.status]?.tagType ?? 'info'">
+      <el-tag v-if="project" :type="PROJECT_STATUS_MAP[project.status]?.tagType || 'info'">
         {{ PROJECT_STATUS_MAP[project.status]?.label || '未知' }}
       </el-tag>
-      <el-button v-if="project && !isArchived" type="primary" size="default" @click="showCreateDialog = true">
-        <el-icon>
-          <Plus />
-        </el-icon>
-        创建任务
-      </el-button>
     </div>
 
     <!-- 标签页 -->
@@ -20,39 +14,34 @@
       <el-tab-pane label="看板" name="board" />
       <el-tab-pane label="迭代" name="sprints" />
       <el-tab-pane label="成员" name="members" />
+      <el-tab-pane label="模块" name="modules" />
+      <el-tab-pane label="版本" name="versions" />
       <el-tab-pane label="设置" name="settings" />
     </el-tabs>
 
     <router-view />
-
-    <CreateTaskDialog
-      v-model="showCreateDialog"
-      :project-id="route.params.id"
-      :dev-lead-id="project?.devLeadId"
-      :test-lead-id="project?.testLeadId"
-      @created="handleTaskCreated"
-    />
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, watch, provide } from 'vue'
+import { inject, onMounted, provide, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getProjectDetail } from '@/api/project'
 import { useProjectStore } from '@/stores/project'
 import { PROJECT_STATUS_MAP } from '@/utils/constants'
-import { useProjectArchive } from '@/composables/useProjectArchive'
-import { Plus } from '@element-plus/icons-vue'
-import CreateTaskDialog from '@/components/task/CreateTaskDialog.vue'
 
 const route = useRoute()
 const router = useRouter()
 const projectStore = useProjectStore()
-const { isArchived } = useProjectArchive()
 
 const project = ref(null)
 const activeTab = ref('overview')
 const taskRefreshKey = ref(0)
+// 监听全局刷新信号（header 新建任务后递增），转发为项目级刷新信号
+const issueRefreshKey = inject('issueRefreshKey', ref(0))
+watch(issueRefreshKey, () => {
+  taskRefreshKey.value++
+})
 
 provide('taskRefreshKey', taskRefreshKey)
 
@@ -62,6 +51,8 @@ const tabRouteMap = {
   board: 'ProjectBoard',
   sprints: 'ProjectSprints',
   members: 'ProjectMembers',
+  modules: 'ProjectModules',
+  versions: 'ProjectVersions',
   settings: 'ProjectSettings'
 }
 
@@ -94,12 +85,6 @@ async function loadProject() {
   } catch {
     // 错误已在拦截器中处理
   }
-}
-
-const showCreateDialog = ref(false)
-
-function handleTaskCreated() {
-  taskRefreshKey.value++
 }
 
 onMounted(() => {

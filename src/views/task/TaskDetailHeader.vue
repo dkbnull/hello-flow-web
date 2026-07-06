@@ -5,10 +5,10 @@
       <div class="header-info">
         <span class="task-no">{{ taskNo }}</span>
         <span class="header-title">{{ task.title }}</span>
-        <el-tag :type="TASK_TYPE_MAP[task.type]?.tagType ?? 'info'" size="small">
+        <el-tag :type="TASK_TYPE_MAP[task.type]?.tagType || 'info'" size="small">
           {{ TASK_TYPE_MAP[task.type]?.label || '任务' }}
         </el-tag>
-        <el-tag :type="TASK_STATUS_MAP[task.status]?.tagType ?? 'info'" size="small">
+        <el-tag :type="TASK_STATUS_MAP[task.status]?.tagType || 'info'" size="small">
           {{ TASK_STATUS_MAP[task.status]?.label || '未知' }}
         </el-tag>
         <el-tag v-if="task.isDelayed === 1" type="danger" size="small" effect="dark">已延期</el-tag>
@@ -130,9 +130,7 @@ const canReopenTask = computed(() => isAdmin.value || isPM.value)
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 16px;
   padding: 12px 0;
-  background: var(--hf-bg-card);
   border-bottom: 1px solid var(--hf-border);
 }
 

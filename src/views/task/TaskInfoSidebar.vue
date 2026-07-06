@@ -37,7 +37,7 @@
           类型
         </div>
         <div class="info-value">
-          <el-tag :type="TASK_TYPE_MAP[task.type]?.tagType ?? 'info'" size="small">
+          <el-tag :type="TASK_TYPE_MAP[task.type]?.tagType || 'info'" size="small">
             {{ TASK_TYPE_MAP[task.type]?.label || '未知' }}
           </el-tag>
         </div>
