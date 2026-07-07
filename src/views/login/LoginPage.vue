@@ -50,10 +50,10 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { reactive, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
-import { User, Lock } from '@element-plus/icons-vue'
+import { Lock, User } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 
 const router = useRouter()
@@ -83,7 +83,7 @@ async function handleLogin() {
     ElMessage.success('登录成功')
     const redirect = route.query.redirect || '/dashboard'
     router.push(redirect)
-  } catch (error) {
+  } catch {
     // 错误已在拦截器中处理
   } finally {
     loading.value = false

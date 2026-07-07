@@ -2,8 +2,10 @@ import axios from 'axios'
 import { ElMessage } from 'element-plus'
 import { useAuthStore } from '@/stores/auth'
 import router from '@/router'
+import { ERROR_CODE } from '@/utils/constants'
 
 const AUTH_URLS = ['/auth/login', '/auth/logout', '/auth/refresh']
+const TOKEN_ERROR_CODES = [ERROR_CODE.UNAUTHORIZED, ERROR_CODE.TOKEN_EXPIRED, ERROR_CODE.TOKEN_INVALID]
 
 const request = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || '/api',
@@ -40,13 +42,10 @@ request.interceptors.response.use(
     if (res.code !== 0) {
       const message = res.message || '请求失败'
       ElMessage.error(message)
-      if (
-        (res.code === 20001 || res.code === 20002 || res.code === 20003) &&
-        !isAuthRequest(response.config.url)
-      ) {
+      if (TOKEN_ERROR_CODES.includes(res.code) && !isAuthRequest(response.config.url)) {
         handleTokenExpired()
       }
-      if (res.code === 30001) {
+      if (res.code === ERROR_CODE.FORBIDDEN) {
         ElMessage.error('权限不足')
       }
       return Promise.reject(new Error(message))
@@ -77,14 +76,17 @@ async function handleTokenRefresh(originalRequest) {
   const authStore = useAuthStore()
   if (!authStore.refreshToken) {
     await forceLogout()
-    return Promise.reject(error)
+    return Promise.reject(new Error('无 refresh token'))
   }
 
   if (isRefreshing) {
-    return new Promise((resolve) => {
-      pendingRequests.push(() => {
-        originalRequest.headers.Authorization = `Bearer ${authStore.accessToken}`
-        resolve(request(originalRequest))
+    return new Promise((resolve, reject) => {
+      pendingRequests.push({
+        resolve: () => {
+          originalRequest.headers.Authorization = `Bearer ${authStore.accessToken}`
+          resolve(request(originalRequest))
+        },
+        reject
       })
     })
   }
@@ -96,21 +98,32 @@ async function handleTokenRefresh(originalRequest) {
     const success = await authStore.refreshAccessToken()
     if (success) {
       originalRequest.headers.Authorization = `Bearer ${authStore.accessToken}`
-      pendingRequests.forEach(cb => cb())
-      pendingRequests = []
+      flushPendingRequests()
       return request(originalRequest)
     } else {
-      pendingRequests = []
+      flushPendingRequests(new Error('Token 刷新失败'))
       await forceLogout()
       return Promise.reject(new Error('Token 刷新失败'))
     }
   } catch {
-    pendingRequests = []
+    flushPendingRequests(new Error('Token 刷新失败'))
     await forceLogout()
     return Promise.reject(new Error('Token 刷新失败'))
   } finally {
     isRefreshing = false
   }
+}
+
+// 通知等待中的请求：error 为空时继续重发，否则统一 reject 避免永久挂起
+function flushPendingRequests(error) {
+  pendingRequests.forEach(({ resolve, reject }) => {
+    if (error) {
+      reject(error)
+    } else {
+      resolve()
+    }
+  })
+  pendingRequests = []
 }
 
 async function handleTokenExpired() {

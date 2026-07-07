@@ -4,7 +4,7 @@
 
     <el-row :gutter="16" class="stat-cards">
       <el-col :span="6">
-        <div class="stat-card stat-pending" @click="$router.push('/my-tasks?status=2')">
+        <div class="stat-card stat-pending" @click="$router.push(`/my-tasks?status=${TASK_STATUS.IN_PROGRESS}`)">
           <div class="stat-icon-wrap">
             <el-icon :size="22">
               <Clock />
@@ -30,7 +30,7 @@
         </div>
       </el-col>
       <el-col :span="6">
-        <div class="stat-card stat-test" @click="$router.push('/my-tasks?status=4')">
+        <div class="stat-card stat-test" @click="$router.push(`/my-tasks?status=${TASK_STATUS.IN_TEST}`)">
           <div class="stat-icon-wrap">
             <el-icon :size="22">
               <CircleCheck />
@@ -43,7 +43,7 @@
         </div>
       </el-col>
       <el-col :span="6">
-        <div class="stat-card stat-bug" @click="$router.push('/my-tasks?type=3')">
+        <div class="stat-card stat-bug" @click="$router.push(`/my-tasks?type=${TASK_TYPE.BUG}`)">
           <div class="stat-icon-wrap">
             <el-icon :size="22">
               <WarningFilled />
@@ -135,7 +135,7 @@ import { useRouter } from 'vue-router'
 import { getMyTasks, getPendingReviewTasks } from '@/api/task'
 import { getNotificationList } from '@/api/notification'
 import { getProjectList, getProjectStats } from '@/api/project'
-import { TASK_STATUS_MAP } from '@/utils/constants'
+import { TASK_STATUS, TASK_STATUS_MAP, TASK_TYPE } from '@/utils/constants'
 import { useDateFormat } from '@/composables/useDateFormat'
 import { CircleCheck, Clock, EditPen, WarningFilled } from '@element-plus/icons-vue'
 
@@ -159,11 +159,13 @@ function goToTask(task) {
   router.push({ name: 'TaskDetailPage', params: { taskId: task.id } })
 }
 
+const NON_BUG_STATUSES = [TASK_STATUS.DONE, TASK_STATUS.CLOSED, TASK_STATUS.CANCELLED]
+
 function computeStats(allTasks, reviewCount) {
-  stats.value.pendingTasks = allTasks.filter(t => t.status === 2).length
+  stats.value.pendingTasks = allTasks.filter(t => t.status === TASK_STATUS.IN_PROGRESS).length
   stats.value.reviewTasks = reviewCount
-  stats.value.testTasks = allTasks.filter(t => t.status === 4).length
-  stats.value.myBugs = allTasks.filter(t => t.type === 3 && t.status !== 5 && t.status !== 6 && t.status !== 7).length
+  stats.value.testTasks = allTasks.filter(t => t.status === TASK_STATUS.IN_TEST).length
+  stats.value.myBugs = allTasks.filter(t => t.type === TASK_TYPE.BUG && !NON_BUG_STATUSES.includes(t.status)).length
 }
 
 async function loadDashboardData() {

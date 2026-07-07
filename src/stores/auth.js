@@ -14,12 +14,16 @@ export const useAuthStore = defineStore('auth', () => {
   const isAdmin = computed(() => user.value?.roles?.includes(ROLE_CODE.ADMIN) || false)
   const userPosition = computed(() => user.value?.positionCode || '')
 
+  function setTokens(tokenData) {
+    accessToken.value = tokenData.accessToken
+    refreshToken.value = tokenData.refreshToken
+    localStorage.setItem('accessToken', tokenData.accessToken)
+    localStorage.setItem('refreshToken', tokenData.refreshToken)
+  }
+
   async function login(username, password) {
     const res = await loginApi({ username, password })
-    accessToken.value = res.data.accessToken
-    refreshToken.value = res.data.refreshToken
-    localStorage.setItem('accessToken', res.data.accessToken)
-    localStorage.setItem('refreshToken', res.data.refreshToken)
+    setTokens(res.data)
     if (res.data.user) {
       user.value = res.data.user
     } else {
@@ -59,10 +63,7 @@ export const useAuthStore = defineStore('auth', () => {
     if (!refreshToken.value) return false
     try {
       const res = await refreshTokenApi({ refreshToken: refreshToken.value })
-      accessToken.value = res.data.accessToken
-      refreshToken.value = res.data.refreshToken
-      localStorage.setItem('accessToken', res.data.accessToken)
-      localStorage.setItem('refreshToken', res.data.refreshToken)
+      setTokens(res.data)
       return true
     } catch {
       return false
