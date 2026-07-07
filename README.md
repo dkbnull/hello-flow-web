@@ -7,17 +7,17 @@
 <p align="center"><strong>软件研发项目管理工具 - WEB 端</strong></p>
 
 <p align="center">
-  <a href="https://github.com/dkbnull/hello-flow-web">
-    <img src="https://img.shields.io/badge/GitHub-WEB 端-blue?logo=github">
-  </a>
-  <a href="https://gitee.com/dkbnull/hello-flow-web">
-    <img src="https://img.shields.io/badge/Gitee-WEB 端-red?logo=gitee">
-  </a>
   <a href="https://github.com/dkbnull/hello-flow-server">
     <img src="https://img.shields.io/badge/GitHub-服务端-blue?logo=github">
   </a>
   <a href="https://gitee.com/dkbnull/hello-flow-server">
     <img src="https://img.shields.io/badge/Gitee-服务端-red?logo=gitee">
+  </a>
+  <a href="https://github.com/dkbnull/hello-flow-web">
+    <img src="https://img.shields.io/badge/GitHub-WEB 端-blue?logo=github">
+  </a>
+  <a href="https://gitee.com/dkbnull/hello-flow-web">
+    <img src="https://img.shields.io/badge/Gitee-WEB 端-red?logo=gitee">
   </a>
 </p>
 
