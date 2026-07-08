@@ -10,8 +10,8 @@ export const TASK_STATUS = {
 }
 
 export const TASK_STATUS_MAP = {
-  [TASK_STATUS.TODO]: { label: '未开始', color: '#909399', tagType: '' },
-  [TASK_STATUS.IN_PROGRESS]: { label: '进行中', color: '#409EFF', tagType: '' },
+  [TASK_STATUS.TODO]: { label: '未开始', color: '#909399', tagType: 'primary' },
+  [TASK_STATUS.IN_PROGRESS]: { label: '进行中', color: '#409EFF', tagType: 'primary' },
   [TASK_STATUS.IN_REVIEW]: { label: '待审查', color: '#E6A23C', tagType: 'warning' },
   [TASK_STATUS.IN_TEST]: { label: '待测试', color: '#F56C6C', tagType: 'danger' },
   [TASK_STATUS.DONE]: { label: '已完成', color: '#67C23A', tagType: 'success' },
@@ -88,7 +88,7 @@ export const SPRINT_STATUS = {
 
 export const SPRINT_STATUS_MAP = {
   [SPRINT_STATUS.PLANNING]: { label: '计划中', tagType: 'info' },
-  [SPRINT_STATUS.ACTIVE]: { label: '进行中', tagType: '' },
+  [SPRINT_STATUS.ACTIVE]: { label: '进行中', tagType: 'primary' },
   [SPRINT_STATUS.COMPLETED]: { label: '已完成', tagType: 'success' }
 }
 
@@ -100,7 +100,7 @@ export const PROJECT_STATUS = {
 
 export const PROJECT_STATUS_MAP = {
   [PROJECT_STATUS.ARCHIVED]: { label: '归档', tagType: 'info' },
-  [PROJECT_STATUS.ACTIVE]: { label: '进行中', tagType: '' }
+  [PROJECT_STATUS.ACTIVE]: { label: '进行中', tagType: 'primary' }
 }
 
 // 缺陷类型

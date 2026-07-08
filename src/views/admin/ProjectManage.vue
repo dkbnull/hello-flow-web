@@ -64,7 +64,7 @@ const columns = ref([
     label: '状态',
     width: 80,
     type: 'status',
-    statusMap: { 1: { label: '进行中', tagType: '' }, 0: { label: '归档', tagType: 'info' } }
+    statusMap: { 1: { label: '进行中', tagType: 'primary' }, 0: { label: '归档', tagType: 'info' } }
   },
   { prop: 'createdAt', label: '创建时间', minWidth: 170 },
   { prop: 'operator', label: '操作', width: 150, view: false, edit: true, delete: false }
