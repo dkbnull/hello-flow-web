@@ -106,41 +106,41 @@ export const PROJECT_STATUS_MAP = {
 // 缺陷类型
 export const DEFECT_TYPE = {
   FUNCTIONAL: 1,
-  UI: 2,
-  PERFORMANCE: 3,
-  SECURITY: 4,
-  COMPATIBILITY: 5,
+  PERFORMANCE: 2,
+  UI: 3,
+  COMPATIBILITY: 4,
+  SECURITY: 5,
   OTHER: 6
 }
 
 export const DEFECT_TYPE_MAP = {
   [DEFECT_TYPE.FUNCTIONAL]: { label: '功能缺陷', tagType: 'danger' },
-  [DEFECT_TYPE.UI]: { label: '界面缺陷', tagType: 'warning' },
   [DEFECT_TYPE.PERFORMANCE]: { label: '性能缺陷', tagType: 'warning' },
-  [DEFECT_TYPE.SECURITY]: { label: '安全缺陷', tagType: 'danger' },
+  [DEFECT_TYPE.UI]: { label: 'UI缺陷', tagType: 'warning' },
   [DEFECT_TYPE.COMPATIBILITY]: { label: '兼容性缺陷', tagType: 'warning' },
+  [DEFECT_TYPE.SECURITY]: { label: '安全缺陷', tagType: 'danger' },
   [DEFECT_TYPE.OTHER]: { label: '其他', tagType: 'info' }
 }
 
 // 复现概率
 export const REPRODUCTION_PROBABILITY = {
   ALWAYS: 1,
-  HIGH: 2,
-  OCCASIONAL: 3,
-  RARE: 4,
-  NONE: 5
+  OFTEN: 2,
+  SOMETIMES: 3,
+  OCCASIONAL: 4,
+  CANNOT_REPRODUCE: 5
 }
 
 export const REPRODUCTION_PROBABILITY_MAP = {
-  [REPRODUCTION_PROBABILITY.ALWAYS]: { label: '必现', color: '#F56C6C' },
-  [REPRODUCTION_PROBABILITY.HIGH]: { label: '高概率', color: '#E6A23C' },
-  [REPRODUCTION_PROBABILITY.OCCASIONAL]: { label: '偶发', color: '#409EFF' },
-  [REPRODUCTION_PROBABILITY.RARE]: { label: '难以复现', color: '#909399' },
-  [REPRODUCTION_PROBABILITY.NONE]: { label: '无法复现', color: '#909399' }
+  [REPRODUCTION_PROBABILITY.ALWAYS]: { label: '必然', color: '#F56C6C' },
+  [REPRODUCTION_PROBABILITY.OFTEN]: { label: '经常', color: '#E6A23C' },
+  [REPRODUCTION_PROBABILITY.SOMETIMES]: { label: '有时', color: '#409EFF' },
+  [REPRODUCTION_PROBABILITY.OCCASIONAL]: { label: '偶尔', color: '#909399' },
+  [REPRODUCTION_PROBABILITY.CANNOT_REPRODUCE]: { label: '无法复现', color: '#909399' }
 }
 
-// 缺陷解决原因
-export const RESOLVE_REASON = {
+// 缺陷解决状态
+export const RESOLUTION_STATUS = {
   FIXED: 1,
   WONT_FIX: 2,
   POSTPONE: 3,
@@ -148,25 +148,31 @@ export const RESOLVE_REASON = {
   CANNOT_REPRODUCE: 5
 }
 
-export const RESOLVE_REASON_MAP = {
-  [RESOLVE_REASON.FIXED]: { label: '已修复', tagType: 'success' },
-  [RESOLVE_REASON.WONT_FIX]: { label: '不予解决', tagType: 'info' },
-  [RESOLVE_REASON.POSTPONE]: { label: '延期修复', tagType: 'warning' },
-  [RESOLVE_REASON.DUPLICATE]: { label: '重复缺陷', tagType: 'info' },
-  [RESOLVE_REASON.CANNOT_REPRODUCE]: { label: '无法重现', tagType: 'info' }
+export const RESOLUTION_STATUS_MAP = {
+  [RESOLUTION_STATUS.FIXED]: { label: '已修复', tagType: 'success' },
+  [RESOLUTION_STATUS.WONT_FIX]: { label: '不予解决', tagType: 'info' },
+  [RESOLUTION_STATUS.POSTPONE]: { label: '延期修复', tagType: 'warning' },
+  [RESOLUTION_STATUS.DUPLICATE]: { label: '重复缺陷', tagType: 'info' },
+  [RESOLUTION_STATUS.CANNOT_REPRODUCE]: { label: '无法重现', tagType: 'info' }
 }
 
 // 项目版本状态
 export const VERSION_STATUS = {
-  PLANNED: 1,
-  RELEASED: 2,
-  ARCHIVED: 3
+  UNRELEASED: 0,
+  RELEASED: 1,
+  ARCHIVED: 2
 }
 
 export const VERSION_STATUS_MAP = {
-  [VERSION_STATUS.PLANNED]: { label: '计划中', tagType: 'info' },
+  [VERSION_STATUS.UNRELEASED]: { label: '未发布', tagType: 'warning' },
   [VERSION_STATUS.RELEASED]: { label: '已发布', tagType: 'success' },
   [VERSION_STATUS.ARCHIVED]: { label: '已归档', tagType: 'info' }
+}
+
+// 描述格式
+export const DESC_FORMAT = {
+  RICH_TEXT: 'rich_text',
+  MARKDOWN: 'markdown'
 }
 
 // 职位编码
@@ -204,15 +210,31 @@ export const ERROR_CODE = {
   TASK_NOT_FOUND: 40004,
   SPRINT_NOT_FOUND: 40005,
   ROLE_NOT_FOUND: 40006,
+  MODULE_NOT_FOUND: 40007,
+  VERSION_NOT_FOUND: 40008,
+  ATTACHMENT_NOT_FOUND: 40009,
+  TAG_NOT_FOUND: 40010,
   USERNAME_EXISTS: 50001,
   MEMBER_EXISTS: 50002,
   RELATION_EXISTS: 50003,
   BIZ_ERROR: 50004,
   STATUS_INVALID: 50005,
   CANNOT_REVIEW_OWN: 50006,
-  PM_CANNOT_REVIEW: 50013,
   TASK_CANCELLED: 50007,
   PROJECT_ARCHIVED: 50008,
+  POSITION_MISMATCH: 50009,
+  NOT_PROJECT_MEMBER: 50010,
+  PROJECT_CODE_EXISTS: 50011,
+  PROJECT_NAME_EXISTS: 50012,
+  PM_CANNOT_REVIEW: 50013,
+  MODULE_NAME_EXISTS: 50014,
+  VERSION_NAME_EXISTS: 50015,
+  TAG_NAME_EXISTS: 50016,
+  FILE_UPLOAD_FAILED: 50017,
+  FILE_DOWNLOAD_FAILED: 50018,
+  TASK_NOT_BUG: 50019,
+  DESC_FORMAT_INVALID: 50020,
+  SPRINT_STATUS_INVALID: 50021,
   SERVER_ERROR: 90001,
   DB_ERROR: 90003
 }

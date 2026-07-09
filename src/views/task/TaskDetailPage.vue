@@ -9,6 +9,7 @@
           :editing="editing"
           :saving="saving"
           :project-archived="projectArchived"
+          :dev-count="devCount"
           @go-back="goBack"
           @start-edit="startEdit"
           @cancel-edit="cancelEdit"
@@ -44,8 +45,8 @@
               <div class="section-body resolution-info">
                 <div class="resolution-row">
                   <span class="resolution-label">解决状态</span>
-                  <el-tag :type="RESOLVE_REASON_MAP[task.resolutionStatus]?.tagType || 'info'" size="small">
-                    {{ RESOLVE_REASON_MAP[task.resolutionStatus]?.label || '未知' }}
+                  <el-tag :type="RESOLUTION_STATUS_MAP[task.resolutionStatus]?.tagType || 'info'" size="small">
+                    {{ RESOLUTION_STATUS_MAP[task.resolutionStatus]?.label || '未知' }}
                   </el-tag>
                 </div>
                 <div v-if="task.resolutionCause" class="resolution-row">
@@ -196,7 +197,7 @@ import { getSprintList } from '@/api/sprint'
 import { getProjectDetail, getProjectMembers } from '@/api/project'
 import { downloadAttachment, getAttachments, previewAttachment } from '@/api/attachment'
 import { getVersionList } from '@/api/version'
-import { PROJECT_STATUS, RESOLVE_REASON_MAP, TASK_STATUS, TASK_TYPE } from '@/utils/constants'
+import { POSITION_CODE, PROJECT_STATUS, RESOLUTION_STATUS_MAP, TASK_STATUS, TASK_TYPE } from '@/utils/constants'
 import { ElImageViewer, ElMessage } from 'element-plus'
 import { Document } from '@element-plus/icons-vue'
 import MarkdownEditor from '@/components/common/MarkdownEditor.vue'
@@ -239,6 +240,8 @@ const previewImageUrl = ref('')
 const imageBlobUrls = ref({})
 // 版本 ID→名称映射（用于解决信息中修复版本显示）
 const versionMap = ref({})
+// 项目成员列表（用于计算 devCount）
+const projectMembers = ref([])
 
 // 图片扩展名
 const IMAGE_EXTS = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp', 'ico']
@@ -291,6 +294,8 @@ async function openPreview(file) {
 }
 
 const projectArchived = computed(() => projectStatus.value === PROJECT_STATUS.ARCHIVED)
+// 项目内开发工程师数量（用于审查权限判断）
+const devCount = computed(() => projectMembers.value.filter(m => m.positionCode === POSITION_CODE.DEV).length)
 // 是否为缺陷（缺陷可触发解决流程）
 const isBug = computed(() => task.value?.type === TASK_TYPE.BUG)
 // 缺陷是否已有解决信息
@@ -498,6 +503,7 @@ async function fillMemberNames() {
   try {
     const res = await getProjectMembers(task.value.projectId)
     const members = res.data || []
+    projectMembers.value = members
     const memberMap = new Map(members.map(m => [m.userId, m.nickname || m.username]))
     if (!task.value.developerName && task.value.developerId) {
       task.value.developerName = memberMap.get(task.value.developerId) || ''

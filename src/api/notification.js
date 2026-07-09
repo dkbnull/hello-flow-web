@@ -10,14 +10,9 @@ export function getUnreadCount() {
   return request.get('/notifications/unread-count')
 }
 
-// 标记已读
-export function markAsRead(id) {
-  return request.put(`/notifications/${id}/read`)
-}
-
-// 全部已读
-export function markAllAsRead() {
-  return request.put('/notifications/read-all')
+// 标记已读（ids为空时标记全部已读，非空时标记指定通知已读）
+export function markAsRead(ids = []) {
+  return request.put('/notifications/read', { ids })
 }
 
 // 获取通知设置

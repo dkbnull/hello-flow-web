@@ -45,7 +45,7 @@
 
 <script setup>
 import { onMounted, ref } from 'vue'
-import { getNotificationList, markAllAsRead, markAsRead } from '@/api/notification'
+import { getNotificationList, markAsRead } from '@/api/notification'
 import { useNotificationStore } from '@/stores/notification'
 import { NOTIFICATION_TYPE_MAP } from '@/utils/constants'
 import { ElMessage } from 'element-plus'
@@ -86,7 +86,7 @@ function handleFilterChange() {
 async function handleRead(notification) {
   if (notification.isRead === 0) {
     try {
-      await markAsRead(notification.id)
+      await markAsRead([notification.id])
       notification.isRead = 1
       notificationStore.decreaseUnread()
     } catch {
@@ -97,7 +97,7 @@ async function handleRead(notification) {
 
 async function handleReadAll() {
   try {
-    await markAllAsRead()
+    await markAsRead([])
     notifications.value.forEach(n => {
       n.isRead = 1
     })

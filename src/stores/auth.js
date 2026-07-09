@@ -1,12 +1,13 @@
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import { login as loginApi, logout as logoutApi, refreshToken as refreshTokenApi } from '@/api/auth'
-import { getCurrentUser } from '@/api/user'
+import { getUserById } from '@/api/user'
 import { ROLE_CODE } from '@/utils/constants'
 
 export const useAuthStore = defineStore('auth', () => {
   const accessToken = ref(localStorage.getItem('accessToken') || '')
   const refreshToken = ref(localStorage.getItem('refreshToken') || '')
+  const userId = ref(localStorage.getItem('userId') || '')
   const user = ref(null)
   const userLoading = ref(false)
 
@@ -26,6 +27,10 @@ export const useAuthStore = defineStore('auth', () => {
     setTokens(res.data)
     if (res.data.user) {
       user.value = res.data.user
+      setUserId(res.data.user.id)
+    } else if (res.data.userId) {
+      setUserId(res.data.userId)
+      await fetchCurrentUser()
     } else {
       await fetchCurrentUser()
     }
@@ -41,22 +46,33 @@ export const useAuthStore = defineStore('auth', () => {
     }
     accessToken.value = ''
     refreshToken.value = ''
+    userId.value = ''
     user.value = null
     localStorage.removeItem('accessToken')
     localStorage.removeItem('refreshToken')
+    localStorage.removeItem('userId')
   }
 
   async function fetchCurrentUser() {
     if (userLoading.value) return
+    if (!userId.value) {
+      await logout()
+      return
+    }
     userLoading.value = true
     try {
-      const res = await getCurrentUser()
+      const res = await getUserById(userId.value)
       user.value = res.data
     } catch {
       await logout()
     } finally {
       userLoading.value = false
     }
+  }
+
+  function setUserId(id) {
+    userId.value = id
+    localStorage.setItem('userId', id)
   }
 
   async function refreshAccessToken() {
@@ -73,6 +89,7 @@ export const useAuthStore = defineStore('auth', () => {
   return {
     accessToken,
     refreshToken,
+    userId,
     user,
     userLoading,
     isLoggedIn,

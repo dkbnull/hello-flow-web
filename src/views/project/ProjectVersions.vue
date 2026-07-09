@@ -126,7 +126,7 @@ const deleting = ref(false)
 
 const form = reactive({
   name: '',
-  status: VERSION_STATUS.PLANNED,
+  status: VERSION_STATUS.UNRELEASED,
   releaseDate: null,
   description: ''
 })
@@ -149,7 +149,7 @@ function openCreate() {
   editingVersion.value = {}
   Object.assign(form, {
     name: '',
-    status: VERSION_STATUS.PLANNED,
+    status: VERSION_STATUS.UNRELEASED,
     releaseDate: null,
     description: ''
   })
@@ -160,7 +160,7 @@ function openEdit(row) {
   editingVersion.value = { ...row }
   Object.assign(form, {
     name: row.name || '',
-    status: row.status ?? VERSION_STATUS.PLANNED,
+    status: row.status ?? VERSION_STATUS.UNRELEASED,
     releaseDate: row.releaseDate || null,
     description: row.description || ''
   })

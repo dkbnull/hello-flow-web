@@ -15,14 +15,9 @@ export function updateUser(id, data) {
   return request.put(`/users/${id}`, data)
 }
 
-// 启用/禁用用户
-export function updateUserStatus(id, status) {
-  return request.put(`/users/${id}/status`, { status })
-}
-
-// 当前用户信息
-export function getCurrentUser() {
-  return request.get('/users/me')
+// 获取指定用户信息（查自己返回完整，查别人脱敏）
+export function getUserById(id) {
+  return request.get(`/users/${id}`)
 }
 
 // 更新个人信息

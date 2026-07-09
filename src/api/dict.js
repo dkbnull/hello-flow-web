@@ -16,16 +16,16 @@ export function updateDictType(id, data) {
 }
 
 // 字典数据列表
-export function getDictDataList(typeId, params) {
-  return request.get(`/dict-types/${typeId}/data`, { params })
+export function getDictDataList(params) {
+  return request.get('/dict-data', { params })
 }
 
 // 创建字典数据
 export function createDictData(data) {
-  return request.post('/dict-types/data', data)
+  return request.post('/dict-data', data)
 }
 
 // 更新字典数据
 export function updateDictData(id, data) {
-  return request.put(`/dict-types/data/${id}`, data)
+  return request.put(`/dict-data/${id}`, data)
 }

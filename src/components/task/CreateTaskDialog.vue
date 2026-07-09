@@ -81,8 +81,8 @@
 
       <!-- 缺陷特有字段 -->
       <template v-if="isBug">
-        <el-form-item label="影响版本" prop="affectedVersionId">
-          <el-select v-model="form.affectedVersionId" placeholder="请选择影响版本" clearable filterable>
+        <el-form-item label="影响版本" prop="affectedVersionIds">
+          <el-select v-model="form.affectedVersionIds" placeholder="请选择影响版本" clearable filterable multiple>
             <el-option v-for="v in versions" :key="v.id" :label="v.name" :value="v.id" />
           </el-select>
         </el-form-item>
@@ -157,10 +157,10 @@
           </el-form-item>
         </el-col>
         <el-col :span="12">
-          <el-form-item label="标签" prop="tags">
-            <el-select v-model="form.tags" multiple filterable allow-create default-first-option
-                       placeholder="选择或输入标签">
-              <el-option v-for="t in tags" :key="t.id" :label="t.name" :value="t.name" />
+          <el-form-item label="标签" prop="tagIds">
+            <el-select v-model="form.tagIds" multiple filterable default-first-option
+                       placeholder="选择标签">
+              <el-option v-for="t in tags" :key="t.id" :label="t.name" :value="t.id" />
             </el-select>
           </el-form-item>
         </el-col>
@@ -198,6 +198,7 @@ import { uploadAttachment } from '@/api/attachment'
 import { useAuthStore } from '@/stores/auth'
 import {
   DEFECT_TYPE_MAP,
+  DESC_FORMAT,
   POSITION_CODE,
   PROJECT_STATUS,
   REPRODUCTION_PROBABILITY_MAP,
@@ -258,13 +259,14 @@ function getDefaultForm() {
     moduleId: null,
     title: '',
     description: '',
+    descriptionFormat: DESC_FORMAT.MARKDOWN,
     priority: TASK_PRIORITY.MEDIUM,
-    tags: [],
+    tagIds: [],
     dueDate: getToday(),
     startDate: getToday(),
     sprintId: null,
     // 缺陷特有
-    affectedVersionId: null,
+    affectedVersionIds: [],
     reproductionProbability: null,
     defectType: null,
     // 经办人

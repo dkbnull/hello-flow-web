@@ -33,7 +33,7 @@
 
 <script setup>
 import { onMounted, ref } from 'vue'
-import { getUserList, updateUserStatus } from '@/api/user'
+import { getUserList, updateUser } from '@/api/user'
 import { getRoleList } from '@/api/role'
 import { ElMessage } from 'element-plus'
 import PageHeader from '@/components/common/PageHeader.vue'
@@ -126,7 +126,7 @@ async function loadOptions() {
 async function handleToggleStatus(row) {
   const newStatus = row.status === 1 ? 0 : 1
   try {
-    await updateUserStatus(row.id, newStatus)
+    await updateUser(row.id, { status: newStatus })
     ElMessage.success('操作成功')
     await loadUsers()
   } catch {

@@ -72,7 +72,8 @@ const props = defineProps({
   taskNo: { type: String, default: '' },
   editing: { type: Boolean, default: false },
   saving: { type: Boolean, default: false },
-  projectArchived: { type: Boolean, default: false }
+  projectArchived: { type: Boolean, default: false },
+  devCount: { type: Number, default: 0 }
 })
 
 defineEmits([
@@ -108,10 +109,13 @@ const canCompleteDev = computed(() => {
   return isAdmin.value || isTaskDeveloper.value
 })
 
-// 代码审查：DEV（不能审查自己的任务）、管理员
+// 代码审查：PM不能审查；DEV在项目内仅自己一个DEV时可审查自己；管理员可审查
 const canCodeReview = computed(() => {
-  if (!isDev.value && !isAdmin.value) return false
-  if (isTaskDeveloper.value) return false
+  if (isPM.value) return false
+  if (isAdmin.value) return true
+  if (!isDev.value) return false
+  // DEV：不能审查自己，除非项目内只有自己一个DEV
+  if (isTaskDeveloper.value) return props.devCount <= 1
   return true
 })
 

@@ -138,7 +138,7 @@ function handleDataAction({ action, row }) {
 
 async function loadDictData(typeId) {
   try {
-    const res = await getDictDataList(typeId)
+    const res = await getDictDataList({ typeId })
     dictData.value = res.data.records || res.data || []
   } catch {
     // 错误已在拦截器中处理

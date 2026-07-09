@@ -19,7 +19,20 @@
       :total="0"
       :show-size-changer="false"
       @action="handleAction"
-    />
+    >
+      <template #operator="{ row }">
+        <el-button link type="primary" size="small" @click="goToSprint(row)">查看</el-button>
+        <template v-if="!isArchived && canManage">
+          <el-button v-if="row.status === SPRINT_STATUS.PLANNING" link type="success" size="small"
+                     @click="handleStart(row)">开始
+          </el-button>
+          <el-button v-if="row.status === SPRINT_STATUS.ACTIVE" link type="warning" size="small"
+                     @click="handleComplete(row)">完成
+          </el-button>
+          <el-button link type="primary" size="small" @click="openEditDialog(row)">编辑</el-button>
+        </template>
+      </template>
+    </HfTable>
 
     <SprintFormDialog
       v-model="showFormDialog"
@@ -31,12 +44,12 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { getSprintList, startSprint, completeSprint } from '@/api/sprint'
+import { getSprintList, transitionSprint } from '@/api/sprint'
 import { usePermission } from '@/composables/usePermission'
 import { useProjectArchive } from '@/composables/useProjectArchive'
-import { SPRINT_STATUS_MAP } from '@/utils/constants'
+import { SPRINT_STATUS, SPRINT_STATUS_MAP } from '@/utils/constants'
 import { ElMessage } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
 import PageHeader from '@/components/common/PageHeader.vue'
@@ -61,16 +74,7 @@ const columns = computed(() => [
   { prop: 'status', label: '状态', width: 100, type: 'status', statusMap: SPRINT_STATUS_MAP },
   { prop: 'startDate', label: '开始日期', width: 120 },
   { prop: 'endDate', label: '结束日期', width: 120 },
-  {
-    prop: 'operator', label: '操作', width: 200, view: false, edit: false, delete: false, actions: [
-      { label: '查看', action: 'view', type: 'primary' },
-      ...(!isArchived.value && canManage.value ? [
-        { label: '开始', action: 'start', type: 'success' },
-        { label: '完成', action: 'complete', type: 'warning' },
-        { label: '编辑', action: 'edit', type: 'primary' }
-      ] : [])
-    ]
-  }
+  { prop: 'operator', label: '操作', width: 200, view: false, edit: false, delete: false }
 ])
 
 function handleAction({ action, row }) {
@@ -110,7 +114,7 @@ async function loadSprints() {
 
 async function handleStart(sprint) {
   try {
-    await startSprint(sprint.id)
+    await transitionSprint(sprint.id, 2)
     ElMessage.success('迭代已开始')
     await loadSprints()
   } catch {
@@ -120,7 +124,7 @@ async function handleStart(sprint) {
 
 async function handleComplete(sprint) {
   try {
-    await completeSprint(sprint.id)
+    await transitionSprint(sprint.id, 3)
     ElMessage.success('迭代已完成')
     await loadSprints()
   } catch {

@@ -11,7 +11,7 @@
       <el-form-item label="解决状态" prop="resolutionStatus">
         <el-select v-model="form.resolutionStatus" placeholder="请选择解决状态">
           <el-option
-            v-for="(info, key) in RESOLVE_REASON_MAP"
+            v-for="(info, key) in RESOLUTION_STATUS_MAP"
             :key="key"
             :label="info.label"
             :value="Number(key)"
@@ -46,7 +46,7 @@
 <script setup>
 import { ref, watch } from 'vue'
 import { getVersionList } from '@/api/version'
-import { RESOLVE_REASON_MAP } from '@/utils/constants'
+import { RESOLUTION_STATUS_MAP } from '@/utils/constants'
 import MarkdownEditor from '@/components/common/MarkdownEditor.vue'
 
 // 缺陷解决对话框：收集解决信息，由父组件统一调用 transition API
