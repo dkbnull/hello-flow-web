@@ -16,6 +16,7 @@
       <el-tab-pane label="成员" name="members" />
       <el-tab-pane label="模块" name="modules" />
       <el-tab-pane label="版本" name="versions" />
+      <el-tab-pane label="标签" name="tags" />
       <el-tab-pane label="设置" name="settings" />
     </el-tabs>
 
@@ -53,6 +54,7 @@ const tabRouteMap = {
   members: 'ProjectMembers',
   modules: 'ProjectModules',
   versions: 'ProjectVersions',
+  tags: 'ProjectTags',
   settings: 'ProjectSettings'
 }
 

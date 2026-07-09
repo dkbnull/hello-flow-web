@@ -19,6 +19,21 @@
       <template #roles="{ row }">
         <span>{{ row.roles?.map(code => roles.find(r => r.code === code)?.name || code).join(', ') || '-' }}</span>
       </template>
+      <template #operator="{ row }">
+        <el-button link type="primary" size="small" @click="handleEdit(row)">编辑</el-button>
+        <el-button
+          v-if="row.status === 1"
+          link type="danger" size="small"
+          @click="handleToggleStatus(row)"
+        >禁用
+        </el-button>
+        <el-button
+          v-else
+          link type="success" size="small"
+          @click="handleToggleStatus(row)"
+        >启用
+        </el-button>
+      </template>
     </HfTable>
 
     <UserFormDialog
@@ -62,10 +77,7 @@ const columns = ref([
   },
   { prop: 'createdAt', label: '创建时间', minWidth: 170 },
   {
-    prop: 'operator', label: '操作', width: 200, view: false, edit: false, delete: false, actions: [
-      { label: '编辑', action: 'edit', type: 'primary' },
-      { label: '禁用', action: 'toggleStatus', type: 'danger' }
-    ]
+    prop: 'operator', label: '操作', width: 200, view: false, edit: false, delete: false
   }
 ])
 
@@ -92,6 +104,11 @@ function handleAction({ action, row }) {
   } else if (action === 'toggleStatus') {
     handleToggleStatus(row)
   }
+}
+
+function handleEdit(row) {
+  editData.value = row
+  showDialog.value = true
 }
 
 function openCreateDialog() {

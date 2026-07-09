@@ -58,12 +58,89 @@
       <div class="info-row">
         <div class="info-label">
           <el-icon>
+            <Collection />
+          </el-icon>
+          所属迭代
+        </div>
+        <div class="info-value">{{ task.sprintName || '-' }}</div>
+      </div>
+      <div v-if="task.moduleName" class="info-row">
+        <div class="info-label">
+          <el-icon>
+            <Grid />
+          </el-icon>
+          模块
+        </div>
+        <div class="info-value">{{ task.moduleName }}</div>
+      </div>
+      <div class="info-row">
+        <div class="info-label">
+          <el-icon>
+            <Timer />
+          </el-icon>
+          开始日期
+        </div>
+        <div class="info-value">{{ task.startDate || '-' }}</div>
+      </div>
+      <div class="info-row">
+        <div class="info-label">
+          <el-icon>
             <Calendar />
           </el-icon>
-          到期时间
+          截止日期
         </div>
         <div class="info-value" :class="{ overdue: isOverdue }">{{ task.dueDate || '-' }}</div>
       </div>
+      <div v-if="task.tags?.length" class="info-row">
+        <div class="info-label">
+          <el-icon>
+            <PriceTag />
+          </el-icon>
+          标签
+        </div>
+        <div class="info-value">
+          <el-tag v-for="tag in task.tags" :key="tag.id" size="small" class="tag-item">{{ tag.name }}</el-tag>
+        </div>
+      </div>
+      <!-- 缺陷特有字段 -->
+      <template v-if="isBug">
+        <el-divider style="margin: 8px 0" />
+        <div v-if="task.defectType != null" class="info-row">
+          <div class="info-label">
+            <el-icon>
+              <Warning />
+            </el-icon>
+            缺陷类型
+          </div>
+          <div class="info-value">
+            <el-tag :type="DEFECT_TYPE_MAP[task.defectType]?.tagType || 'info'" size="small">
+              {{ DEFECT_TYPE_MAP[task.defectType]?.label || '未知' }}
+            </el-tag>
+          </div>
+        </div>
+        <div v-if="task.reproductionProbability != null" class="info-row">
+          <div class="info-label">
+            <el-icon>
+              <Refresh />
+            </el-icon>
+            复现概率
+          </div>
+          <div class="info-value">
+            {{ REPRODUCTION_PROBABILITY_MAP[task.reproductionProbability]?.label || '未知' }}
+          </div>
+        </div>
+        <div v-if="affectedVersionNames.length" class="info-row">
+          <div class="info-label">
+            <el-icon>
+              <Document />
+            </el-icon>
+            影响版本
+          </div>
+          <div class="info-value">
+            <el-tag v-for="name in affectedVersionNames" :key="name" size="small" class="tag-item">{{ name }}</el-tag>
+          </div>
+        </div>
+      </template>
       <el-divider style="margin: 8px 0" />
       <div class="info-row">
         <div class="info-label">
@@ -89,9 +166,31 @@
 
 <script setup>
 import { computed } from 'vue'
-import { TASK_PRIORITY_MAP, TASK_TYPE_MAP } from '@/utils/constants'
+import {
+  DEFECT_TYPE_MAP,
+  REPRODUCTION_PROBABILITY_MAP,
+  TASK_PRIORITY_MAP,
+  TASK_TYPE,
+  TASK_TYPE_MAP
+} from '@/utils/constants'
 import { useTaskStatus } from '@/composables/useTaskStatus'
-import { Calendar, Clock, Cpu, Flag, InfoFilled, Monitor, PriceTag, RefreshRight, User } from '@element-plus/icons-vue'
+import {
+  Calendar,
+  Clock,
+  Collection,
+  Cpu,
+  Document,
+  Flag,
+  Grid,
+  InfoFilled,
+  Monitor,
+  PriceTag,
+  Refresh,
+  RefreshRight,
+  Timer,
+  User,
+  Warning
+} from '@element-plus/icons-vue'
 import SectionCard from '@/components/common/SectionCard.vue'
 
 const props = defineProps({
@@ -101,6 +200,13 @@ const props = defineProps({
 const { isOverdue: checkOverdue } = useTaskStatus()
 
 const isOverdue = computed(() => checkOverdue(props.task))
+const isBug = computed(() => props.task.type === TASK_TYPE.BUG)
+
+// 影响版本名称列表
+const affectedVersionNames = computed(() => {
+  if (!props.task.affectedVersions?.length) return []
+  return props.task.affectedVersions.map(v => v.name).filter(Boolean)
+})
 </script>
 
 <style scoped>
@@ -140,5 +246,10 @@ const isOverdue = computed(() => checkOverdue(props.task))
 .info-value.overdue {
   color: var(--hf-danger);
   font-weight: 500;
+}
+
+.tag-item {
+  margin-right: 4px;
+  margin-bottom: 2px;
 }
 </style>

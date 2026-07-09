@@ -114,15 +114,15 @@
         </el-row>
       </template>
 
-      <!-- 开始时间 + 到期日 -->
+      <!-- 开始日期 + 截止日期 -->
       <el-row :gutter="16">
         <el-col :span="12">
-          <el-form-item label="开始时间" prop="startDate">
+          <el-form-item label="开始日期" prop="startDate">
             <el-date-picker v-model="form.startDate" type="date" placeholder="请选择" value-format="YYYY-MM-DD" />
           </el-form-item>
         </el-col>
         <el-col :span="12">
-          <el-form-item label="到期时间" prop="dueDate">
+          <el-form-item label="截止日期" prop="dueDate">
             <el-date-picker v-model="form.dueDate" type="date" placeholder="请选择" value-format="YYYY-MM-DD" />
           </el-form-item>
         </el-col>
@@ -193,7 +193,7 @@ import { getModuleList } from '@/api/module'
 import { getTagList } from '@/api/tag'
 import { getVersionList } from '@/api/version'
 import { getSprintList } from '@/api/sprint'
-import { addTaskRelation, createSubtask, createTask } from '@/api/task'
+import { createSubtask, createTask } from '@/api/task'
 import { uploadAttachment } from '@/api/attachment'
 import { useAuthStore } from '@/stores/auth'
 import {
@@ -262,11 +262,12 @@ function getDefaultForm() {
     descriptionFormat: DESC_FORMAT.MARKDOWN,
     priority: TASK_PRIORITY.MEDIUM,
     tagIds: [],
-    dueDate: getToday(),
     startDate: getToday(),
+    dueDate: getToday(),
     sprintId: null,
     // 缺陷特有
     affectedVersionIds: [],
+    fixVersionIds: [],
     reproductionProbability: null,
     defectType: null,
     // 经办人
@@ -281,8 +282,8 @@ const rules = computed(() => {
   const base = {
     type: [{ required: true, message: '请选择任务类型', trigger: 'change' }],
     title: [{ required: true, message: '请输入标题', trigger: 'blur' }],
-    startDate: [{ required: true, message: '请选择开始时间', trigger: 'change' }],
-    dueDate: [{ required: true, message: '请选择到期时间', trigger: 'change' }]
+    startDate: [{ required: true, message: '请选择开始日期', trigger: 'change' }],
+    dueDate: [{ required: true, message: '请选择截止日期', trigger: 'change' }]
   }
   // 非子任务场景项目必填
   if (!props.parentTaskId) {
@@ -420,6 +421,13 @@ async function handleSubmit() {
     // 1. 创建任务主体
     const payload = { ...form.value }
     payload.projectId = Number(payload.projectId)
+    // 将 LinkIssuePicker 的 { taskId, taskTitle, relationType } 映射为 API 的 { relatedTaskId, relationType }
+    if (relations.value.length) {
+      payload.relations = relations.value.map(r => ({
+        relatedTaskId: r.taskId,
+        relationType: r.relationType
+      }))
+    }
 
     let taskId
     if (props.parentTaskId) {
@@ -434,16 +442,6 @@ async function handleSubmit() {
     const pendingFiles = attachmentRef.value?.getPendingFiles() || []
     if (pendingFiles.length) {
       await Promise.all(pendingFiles.map(f => uploadAttachment(taskId, f)))
-    }
-
-    // 3. 批量添加问题关联
-    if (relations.value.length) {
-      await Promise.all(
-        relations.value.map(r => addTaskRelation(taskId, {
-          relatedTaskId: r.taskId,
-          relationType: r.relationType
-        }))
-      )
     }
 
     ElMessage.success(props.parentTaskId ? '子任务创建成功' : '任务创建成功')

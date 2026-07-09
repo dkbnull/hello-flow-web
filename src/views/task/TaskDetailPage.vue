@@ -25,7 +25,15 @@
         />
 
         <template v-if="editing">
-          <TaskEditForm :form="form" :sprints="sprints" />
+          <TaskEditForm
+            :form="form"
+            :sprints="sprints"
+            :modules="modules"
+            :versions="versions"
+            :tags="tags"
+            :dev-members="devMembers"
+            :qa-members="qaMembers"
+          />
         </template>
         <template v-else>
           <!-- 描述 -->
@@ -197,6 +205,8 @@ import { getSprintList } from '@/api/sprint'
 import { getProjectDetail, getProjectMembers } from '@/api/project'
 import { downloadAttachment, getAttachments, previewAttachment } from '@/api/attachment'
 import { getVersionList } from '@/api/version'
+import { getTagList } from '@/api/tag'
+import { getModuleList } from '@/api/module'
 import { POSITION_CODE, PROJECT_STATUS, RESOLUTION_STATUS_MAP, TASK_STATUS, TASK_TYPE } from '@/utils/constants'
 import { ElImageViewer, ElMessage } from 'element-plus'
 import { Document } from '@element-plus/icons-vue'
@@ -227,6 +237,11 @@ const subtasks = ref([])
 const relations = ref([])
 const activities = ref([])
 const sprints = ref([])
+const tags = ref([])
+const modules = ref([])
+const versions = ref([])
+const devMembers = ref([])
+const qaMembers = ref([])
 const submittingComment = ref(false)
 const showAddSubtask = ref(false)
 const showAddRelation = ref(false)
@@ -311,8 +326,17 @@ const form = reactive({
   description: '',
   type: 1,
   priority: 2,
+  startDate: '',
   dueDate: '',
-  sprintId: null
+  sprintId: null,
+  moduleId: null,
+  assigneeId: null,
+  developerId: null,
+  testerId: null,
+  tagIds: [],
+  affectedVersionIds: [],
+  defectType: null,
+  reproductionProbability: null
 })
 
 const taskNo = ref('')
@@ -335,8 +359,17 @@ function startEdit() {
   form.description = task.value.description || ''
   form.type = task.value.type
   form.priority = task.value.priority
+  form.startDate = task.value.startDate || ''
   form.dueDate = task.value.dueDate || ''
   form.sprintId = task.value.sprintId || null
+  form.moduleId = task.value.moduleId || null
+  form.assigneeId = task.value.assigneeId || null
+  form.developerId = task.value.developerId || null
+  form.testerId = task.value.testerId || null
+  form.tagIds = (task.value.tags || []).map(t => t.id)
+  form.affectedVersionIds = (task.value.affectedVersions || []).map(v => v.id)
+  form.defectType = task.value.defectType ?? null
+  form.reproductionProbability = task.value.reproductionProbability ?? null
   editing.value = true
 }
 
@@ -474,9 +507,17 @@ async function loadTask() {
       // 忽略
     }
   }
-  // 补充开发/测试工程师名称
-  if (task.value.projectId && (!task.value.developerName || !task.value.testerName)) {
-    fillMemberNames()
+  // 并行加载编辑表单和侧边栏所需数据（await 确保加载完成后再渲染）
+  // fillMemberNames 无条件调用：既补充名称，又加载 devMembers/qaMembers 供编辑表单下拉使用
+  if (task.value.projectId) {
+    await Promise.all([
+      fillMemberNames(),
+      loadTags(task.value.projectId),
+      loadModules(task.value.projectId),
+      loadVersions(task.value.projectId),
+      loadSprints()
+    ])
+    fillSprintName()
   }
   // 缺陷有修复版本时加载版本名称映射
   if (task.value.projectId && task.value.fixVersionIds?.length) {
@@ -504,6 +545,14 @@ async function fillMemberNames() {
     const res = await getProjectMembers(task.value.projectId)
     const members = res.data || []
     projectMembers.value = members
+    // 按职位分组成员（编辑表单使用）
+    devMembers.value = members
+      .filter(m => m.positionCode === POSITION_CODE.DEV)
+      .map(m => ({ userId: m.userId, nickname: m.nickname || m.username }))
+    qaMembers.value = members
+      .filter(m => m.positionCode === POSITION_CODE.QA)
+      .map(m => ({ userId: m.userId, nickname: m.nickname || m.username }))
+    // 补充缺失的名称
     const memberMap = new Map(members.map(m => [m.userId, m.nickname || m.username]))
     if (!task.value.developerName && task.value.developerId) {
       task.value.developerName = memberMap.get(task.value.developerId) || ''
@@ -513,6 +562,41 @@ async function fillMemberNames() {
     }
   } catch {
     // 忽略
+  }
+}
+
+async function loadTags(projectId) {
+  try {
+    const res = await getTagList({ projectId })
+    tags.value = res.data || []
+  } catch {
+    // 忽略
+  }
+}
+
+async function loadModules(projectId) {
+  try {
+    const res = await getModuleList({ projectId })
+    modules.value = res.data || []
+  } catch {
+    // 忽略
+  }
+}
+
+async function loadVersions(projectId) {
+  try {
+    const res = await getVersionList({ projectId })
+    versions.value = res.data || []
+  } catch {
+    // 忽略
+  }
+}
+
+function fillSprintName() {
+  if (!task.value?.sprintId || !sprints.value.length) return
+  if (!task.value.sprintName) {
+    const sprint = sprints.value.find(s => s.id === task.value.sprintId)
+    if (sprint) task.value.sprintName = sprint.name
   }
 }
 
@@ -628,8 +712,7 @@ async function loadAll() {
       loadSubtasks(),
       loadRelations(),
       loadActivities(),
-      loadAttachments(),
-      loadSprints()
+      loadAttachments()
     ])
   } catch {
     // 错误已在拦截器中处理

@@ -89,6 +89,12 @@ const routes = [
             meta: { title: '版本管理' }
           },
           {
+            path: 'tags',
+            name: 'ProjectTags',
+            component: () => import('@/views/project/ProjectTags.vue'),
+            meta: { title: '标签管理' }
+          },
+          {
             path: 'settings',
             name: 'ProjectSettings',
             component: () => import('@/views/project/ProjectSettings.vue'),
